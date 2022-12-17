@@ -117,45 +117,13 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
 
     const {data: session} = useSession() as unknown as { data: Session };
 
-    const [shares, setShares] = useState<ShareArray>(sharesProp);
-
-    const toggleShare = (index: number) => {
-        let newShares = [...shares];
-        newShares[index].enabled = !newShares[index].enabled;
-        setShares(newShares);
-    };
-
     return (
         <div className={styles.container}>
-            <Card variant={"bordered"} style={{width: "fit-content"}}>
-                <Card.Footer
-                    isBlurred
-                    css={{
-                        position: "absolute",
-                        bgBlur: "#ffffff66",
-                        borderTop: "$borderWeights$light solid rgba(255, 255, 255, 0.2)",
-                        bottom: 0,
-                        zIndex: 1,
-                        height: "20%",
-                        padding: "0"
-                    }}
-                >
-                    <Text h4 style={{margin: "auto", paddingBottom: "4px"}}>
-                        {session.user.name}
-                    </Text>
-                </Card.Footer>
-                <Card.Body style={{padding: 0}}>
-                    <Card.Image
-                        src={session.user.profile_picture_url}
-                        objectFit="cover"
-                        width="200px"
-                    />
-                </Card.Body>
-
-            </Card>
             <Head>
                 <title>Me - Friendly Fire-Share</title>
             </Head>
+
+            <MeCard session={session}/>
             <main className={styles.main}>
                 <Text h1>
                     {session.user.name}
@@ -172,29 +140,7 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
                     Refresh Token : {refresh_token_valid}
                 </Text>
                 <div className={styles.container}>
-                    <Table className={styles.table} aria-label="Shares list">
-                        <Table.Header>
-                            <Table.Column>Name</Table.Column>
-                            <Table.Column>Computer</Table.Column>
-                            <Table.Column>Last use</Table.Column>
-                            <Table.Column>Enabled</Table.Column>
-                        </Table.Header>
-                        <Table.Body>
-                            {shares.map((share, index) => (
-                                <Table.Row key={index}>
-                                    <Table.Cell>{share.name}</Table.Cell>
-                                    <Table.Cell>{share.computer}</Table.Cell>
-                                    <Table.Cell>{share.lastUse}</Table.Cell>
-                                    <Table.Cell>
-                                        <Checkbox aria-label="Control share state"
-                                                  isSelected={share.enabled}
-                                                  isRounded={false}
-                                                  onChange={() => toggleShare(index)}/>
-                                    </Table.Cell>
-                                </Table.Row>
-                            ))}
-                        </Table.Body>
-                    </Table>
+                    <ShareTable sharesProp={sharesProp}/>
                 </div>
             </main>
         </div>

@@ -3,7 +3,6 @@ import Head from "next/head";
 import {Button, Loading} from "@nextui-org/react";
 import {signIn} from "next-auth/react";
 import {GetServerSidePropsContext} from "next";
-import {authOptions} from "./api/auth/[...nextauth]";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
 import getServerSession from "../lib/customSession";
