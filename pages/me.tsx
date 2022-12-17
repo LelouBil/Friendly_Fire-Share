@@ -3,10 +3,10 @@ import Head from "next/head";
 import React, {useState} from "react";
 import {Card, Checkbox, Table, Text} from "@nextui-org/react";
 import {useSession} from "next-auth/react";
-import {GetServerSidePropsContext} from "next";
+import {GetServerSidePropsContext, GetServerSidePropsResult} from "next";
 import {Session} from "next-auth";
 import {prisma} from "../lib/db";
-import getServerSession from "../lib/customSession";
+import {getServerSession} from "../lib/customSession";
 import {steam_web} from "../lib/steam_web";
 import createSteamUser from "../lib/customSteamUser";
 import {SteamPlayerSummary} from "steamwebapi-ts/lib/types/SteamPlayerSummary";
@@ -26,7 +26,94 @@ type BorrowingUser = {
 
 type ShareArray = (ShareInfo & BorrowingUser)[]
 
-export default function Me({sharesProp}: { sharesProp: ShareArray }) {
+type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_valid: boolean, session: Session};
+
+function MeCard(props: { session: Session }) {
+    return <Card variant={"bordered"} style={{width: "fit-content"}}>
+        <Card.Footer
+            isBlurred
+            css={{
+                position: "absolute",
+                bgBlur: "#ffffff66",
+                borderTop: "$borderWeights$light solid rgba(255, 255, 255, 0.2)",
+                bottom: 0,
+                zIndex: 1,
+                height: "20%",
+                padding: "0"
+            }}
+        >
+            <Text h4 style={{margin: "auto", paddingBottom: "4px"}}>
+                {props.session.user.name}
+            </Text>
+        </Card.Footer>
+        <Card.Body style={{padding: 0}}>
+            <Card.Image
+                src={props.session.user.profile_picture_url}
+                objectFit="cover"
+                width="200px"
+                alt="Your Steam profile picture"
+            />
+        </Card.Body>
+    </Card>;
+}
+
+function ShareTable({sharesProp} : { sharesProp: ShareArray}) {
+    const [shares, setShares] = useState<ShareArray>(sharesProp);
+
+    const toggleShare = (index: number) => {
+        let newShares = [...shares];
+        newShares[index].enabled = !newShares[index].enabled;
+        setShares(newShares);
+    };
+
+    return (
+        <Table className={styles.table} aria-label="Shares list">
+            <Table.Header>
+                <Table.Column>Name</Table.Column>
+                <Table.Column>Computer</Table.Column>
+                <Table.Column>Last use</Table.Column>
+                <Table.Column>Enabled</Table.Column>
+            </Table.Header>
+            <Table.Body>
+                {shares.map((share, index) => (
+                    <Table.Row key={index}>
+                        <Table.Cell>{share.name}</Table.Cell>
+                        <Table.Cell>{share.computer}</Table.Cell>
+                        <Table.Cell>{share.lastUse}</Table.Cell>
+                        <Table.Cell>
+                            <Checkbox aria-label="Control share state"
+                                      isSelected={share.enabled}
+                                      isRounded={false}
+                                      onChange={() => toggleShare(index)}/>
+                        </Table.Cell>
+                    </Table.Row>
+                ))}
+            </Table.Body>
+        </Table>
+    )
+}
+
+function SetNewMachineId() {
+
+    return (
+        <form onSubmit={(e)=> {
+            e.preventDefault();
+            console.log(e);
+        }}>
+            <label htmlFor="machineId">
+            <input id="machineId" type="text" size={74} placeholder="Paste your machineID here"/>
+            </label>
+            <button type="submit">Submit</button>
+            <a href="/machineID.ps1" onClick={() => {
+                console.log("Download");
+            }
+            }>Get my machineID</a>
+        </form>
+    )
+
+}
+
+export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: MeProps) {
 
     const {data: session} = useSession() as unknown as { data: Session };
 
@@ -73,6 +160,17 @@ export default function Me({sharesProp}: { sharesProp: ShareArray }) {
                 <Text h1>
                     {session.user.name}
                 </Text>
+                <div>
+                <Text h2>
+                    Machine ID : {machine_id_valid ? "✔": "false"}
+                </Text>
+                    {
+                        machine_id_valid ? <>TODO</> : <SetNewMachineId/>
+                    }
+                </div>
+                <Text h2>
+                    Refresh Token : {refresh_token_valid}
+                </Text>
                 <div className={styles.container}>
                     <Table className={styles.table} aria-label="Shares list">
                         <Table.Header>
@@ -103,7 +201,7 @@ export default function Me({sharesProp}: { sharesProp: ShareArray }) {
     );
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<MeProps>> {
 
     let session = await getServerSession(context);
     let server_user = await prisma.user.findUniqueOrThrow({
@@ -114,24 +212,33 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             Borrowers: true
         }
     });
+
+    let refresh_token_valid = server_user.RefreshToken != null;
+    let machine_id_valid = server_user.MachineId != null;
+
     console.log(JSON.stringify(server_user));
 
     let devices: { [steam_id: string]: any } = {};
 
     if (server_user.RefreshToken != null) {
-        let steam_client = await createSteamUser(server_user.RefreshToken);
-        console.log("Steam client logged in");
-        let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
-        console.log(JSON.stringify(the_devices));
-        devices = the_devices.reduce((obj, item) => {
+        try {
+            let steam_client = await createSteamUser(server_user.RefreshToken);
+            console.log("Steam client logged in");
+            let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
+            console.log(JSON.stringify(the_devices));
+            devices = the_devices.reduce((obj, item) => {
 
-                if (item?.lastBorrower) {
-                    return {...obj, [item.lastBorrower.getSteamID64()]: item};
-                } else
-                    return obj;
-            }
-            , {});
-        steam_client.logOff();
+                    if (item?.lastBorrower) {
+                        return {...obj, [item.lastBorrower.getSteamID64()]: item};
+                    } else
+                        return obj;
+                }
+                , {});
+            steam_client.logOff();
+        } catch (error){
+            console.error("Error with steam login : ",error)
+            refresh_token_valid = false;
+        }
     }
 
 
@@ -140,7 +247,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     let steam_profiles: SteamPlayerSummary[] = server_user.Borrowers.length > 0 ?
         (await steam_web.getPlayersSummary(server_user.Borrowers.map(b => b.id))) : [];
 
-    const shares = steam_profiles.map(profile => {
+    const shares : ShareArray = steam_profiles.map(profile => {
         let steam_id = profile.steamid;
         let user_info: BorrowingUser = {
             name: profile.personaname,
@@ -148,7 +255,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             profile_url: profile.profileurl
         };
 
-        let share_info: ShareInfo | {};
+        let share_info: ShareInfo;
         if (devices[steam_id]) {
             let device = devices[steam_id];
             share_info = {
@@ -169,6 +276,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
         props: {
             sharesProp: shares,
+            refresh_token_valid,
+            machine_id_valid,
             session: session
         }
     };

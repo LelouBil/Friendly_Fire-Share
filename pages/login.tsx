@@ -2,11 +2,11 @@ import styles from '@/styles/Login.module.css';
 import Head from "next/head";
 import {Button, Loading} from "@nextui-org/react";
 import {signIn} from "next-auth/react";
-import {unstable_getServerSession} from "next-auth";
 import {GetServerSidePropsContext} from "next";
 import {authOptions} from "./api/auth/[...nextauth]";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
+import getServerSession from "../lib/customSession";
 
 
 export default function Login() {
@@ -39,7 +39,7 @@ export default function Login() {
 
 // If connected, then redirect to given callback uri query param
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-    let session = await unstable_getServerSession(context.req, context.res, authOptions);
+    let session = await getServerSession(context);
 
     // If session exists, and there is no error in query param
     if (session) {

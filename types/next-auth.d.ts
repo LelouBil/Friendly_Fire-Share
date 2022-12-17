@@ -1,3 +1,6 @@
+// noinspection ES6UnusedImports
+
+import NextAuth from "next-auth"
 declare module "next-auth" {
 
 
@@ -13,6 +16,6 @@ declare module "next-auth" {
         name: string,
         steam_id: string,
         refresh_token: string | null
-        sentry_file: Buffer | null
+        machine_id: Buffer | null
     }
 }

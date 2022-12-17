@@ -9,9 +9,6 @@ export const authOptions: AuthOptions = {
         strategy: "jwt"
     },
     callbacks: {
-        signIn: async function (data){
-            return true; //todo
-        },
         jwt: async function ({token, profile, user}) {
             if(user){
                 token.sub = user.steam_id;
@@ -23,8 +20,8 @@ export const authOptions: AuthOptions = {
             let summary = await steam_web.getPlayerSummary(steam_id);
             session.user = {
                 steam_id,
-                name: summary?.personaname,
-                profile_picture_url: summary?.avatarfull
+                name: summary!.personaname,
+                profile_picture_url: summary!.avatarfull
             };
             return session;
         }
@@ -46,7 +43,7 @@ export const authOptions: AuthOptions = {
                     steam_id: data.steam_id,
                     name: data.preferred_username,
                     refresh_token: null,
-                    sentry_file: null
+                    machine_id: null
                 };
             }
         }

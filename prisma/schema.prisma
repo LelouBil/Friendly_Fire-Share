@@ -14,7 +14,7 @@ datasource db {
 model User{
   id String @id @db.VarChar(17)
   RefreshToken String? @db.Text
-  SentryFile Bytes?
+  MachineId Bytes?
   Borrowers User[] @relation("AllowedBorrows")
   BorrowsFrom User[] @relation("AllowedBorrows")
 }
