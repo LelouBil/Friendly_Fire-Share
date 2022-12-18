@@ -2,7 +2,7 @@ import {GetServerSidePropsContext, NextApiRequest, NextApiResponse} from "next";
 import {unstable_getServerSession} from "next-auth/next";
 import {authOptions} from "../pages/api/auth/[...nextauth]";
 import {Session} from "next-auth";
-import {NextRequest, NextResponse} from "next/server";
+import {NextResponse} from "next/server";
 
 export async function getServerSession(ctx: GetServerSidePropsContext) : Promise<Session>{
     return getActualServerSession(ctx.req,ctx.res);

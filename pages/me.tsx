@@ -1,7 +1,7 @@
 import styles from '@/styles/Me.module.css';
 import Head from "next/head";
-import React, {useState} from "react";
-import {Card, Checkbox, Table, Text} from "@nextui-org/react";
+import React, {FormEventHandler, useEffect, useState} from "react";
+import {Button, Card, Checkbox, Input, Table, Text} from "@nextui-org/react";
 import {useSession} from "next-auth/react";
 import {GetServerSidePropsContext, GetServerSidePropsResult} from "next";
 import {Session} from "next-auth";
@@ -10,6 +10,9 @@ import {getServerSession} from "../lib/customSession";
 import {steam_web} from "../lib/steam_web";
 import createSteamUser from "../lib/customSteamUser";
 import {SteamPlayerSummary} from "steamwebapi-ts/lib/types/SteamPlayerSummary";
+import axios from "axios";
+import {EAuthTokenPlatformType, LoginSession} from "steam-session";
+import {log} from "util";
 
 
 type ShareInfo = {
@@ -93,30 +96,49 @@ function ShareTable({sharesProp}: { sharesProp: ShareArray }) {
     );
 }
 
-function SetNewMachineId() {
+function SetNewMachineId({setValid}: {setValid: (valid: boolean) => void}) {
 
+    const [machineId, setMachineId] = useState("");
+    const submitMachineId: FormEventHandler<HTMLFormElement> = async (e) => {
+        e.preventDefault();
+        let response = await axios.post("/api/machineId/set", {
+            machine_id: machineId
+        });
+
+        //todo eliott
+    };
     return (
-        <form onSubmit={(e) => {
-            e.preventDefault();
-            const form = e.target as HTMLFormElement;
-            const machine_id = (form.elements.namedItem("machine_id") as HTMLInputElement).value;
-            console.log(machine_id);
-        }}>
-            <label>
-                <input id="machine_id" type="text" maxLength={310} minLength={310}
-                       placeholder="Paste your machineID here" required/>
-            </label>
-            <button type="submit">Submit</button>
+        <form onSubmit={submitMachineId} className={styles.machineIdForm}>
+            <Input id="machine_id" maxLength={310} minLength={310} placeholder={"Paste here"} size="lg" required
+                   bordered onChange={e => {
+                setMachineId(e.target.value)
+            }}/>
+            <Button type="submit">Submit</Button>
             <a href="/machineID.ps1">Get my machineID</a>
         </form>
     );
 }
 
-function SetRefreshToken() {
+function SetRefreshToken({setValid}: {setValid: (valid: boolean) => void}) {
 
+    const [loginSession,setLoginSession] = useState<LoginSession>(null!);
+    const [qrCodeUrl,setQRCodeUrl] = useState<string | null>(null);
+
+    function submitToken(refresh_token: string){
+
+    }
+
+    useEffect(async () => {
+        setLoginSession(new LoginSession(EAuthTokenPlatformType.SteamClient));
+        loginSession?.on("authenticated", () => {
+            submitToken(loginSession!.refreshToken);
+        })
+        const result = await loginSession?.startWithQR();
+        setQRCodeUrl(result.qrChallengeUrl!);
+    })
     return (
         <>
-            TODO
+            <div>TODO</div>
         </>
     );
 }
@@ -125,6 +147,10 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
 
     const {data: session} = useSession() as unknown as { data: Session };
 
+    const [machineIdValid, setMachineIdValid] = useState(machine_id_valid);
+    const [refreshTokenValid, setRefreshTokenValid] = useState(refresh_token_valid);
+
+    console.log(session);
     return (
         <div className={styles.container}>
             <Head>
@@ -141,7 +167,7 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
                         Machine ID :
                     </Text>
                     {
-                        machine_id_valid ? "✔" : <SetNewMachineId/>
+                        machineIdValid ? "✔" : <SetNewMachineId setValid={setMachineIdValid}/>
                     }
                 </div>
                 <div>
@@ -149,7 +175,7 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
                         Refresh Token :
                     </Text>
                     {
-                        refresh_token_valid ? "✔" : <SetRefreshToken/>
+                        refreshTokenValid ? "✔" : <SetRefreshToken setValid={setRefreshTokenValid}/>
                     }
                 </div>
                 <div className={styles.container}>
@@ -181,7 +207,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
 
     if (server_user.RefreshToken != null) {
         try {
-            let steam_client = await createSteamUser(server_user.RefreshToken);
+            console.log(session.user.steam_id);
+            let steam_client = await createSteamUser(server_user.RefreshToken, session.user.steam_id);
             console.log("Steam client logged in");
             let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
             console.log(JSON.stringify(the_devices));
@@ -195,8 +222,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
                 , {});
             steam_client.logOff();
         } catch (error) {
-            console.error("Error with steam login : ", error);
+            console.error("Error with steam login :", error);
             refresh_token_valid = false;
+            await prisma.user.update({
+                where: {
+                    id: session.user.steam_id
+                },
+                data: {
+                    RefreshToken: null
+                }
+            });
         }
     }
 

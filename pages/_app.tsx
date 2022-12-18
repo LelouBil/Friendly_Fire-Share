@@ -22,15 +22,17 @@ export default function App({Component, pageProps: {session, ...pageProps}}: App
     });
 
     return (
-        <SSRProvider>
-            <NextThemesProvider defaultTheme="system" attribute="class" value={{light: lightTheme, dark: darkTheme}}>
-                <NextUIProvider>
-                    <SessionProvider session={session}>
+
+        <NextThemesProvider defaultTheme="system" attribute="class" value={{light: lightTheme, dark: darkTheme}}>
+            <NextUIProvider>
+                <SessionProvider session={session}>
+                    <SSRProvider>
                         <Header/>
                         <Component {...pageProps} />
-                    </SessionProvider>
-                </NextUIProvider>
-            </NextThemesProvider>
-        </SSRProvider>
+                    </SSRProvider>
+                </SessionProvider>
+            </NextUIProvider>
+        </NextThemesProvider>
+
     );
 }
