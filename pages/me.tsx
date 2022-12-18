@@ -26,7 +26,7 @@ type BorrowingUser = {
 
 type ShareArray = (ShareInfo & BorrowingUser)[]
 
-type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_valid: boolean, session: Session};
+type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_valid: boolean, session: Session };
 
 function MeCard(props: { session: Session }) {
     return <Card variant={"bordered"} style={{width: "fit-content"}}>
@@ -57,7 +57,7 @@ function MeCard(props: { session: Session }) {
     </Card>;
 }
 
-function ShareTable({sharesProp} : { sharesProp: ShareArray}) {
+function ShareTable({sharesProp}: { sharesProp: ShareArray }) {
     const [shares, setShares] = useState<ShareArray>(sharesProp);
 
     const toggleShare = (index: number) => {
@@ -90,27 +90,35 @@ function ShareTable({sharesProp} : { sharesProp: ShareArray}) {
                 ))}
             </Table.Body>
         </Table>
-    )
+    );
 }
 
 function SetNewMachineId() {
 
     return (
-        <form onSubmit={(e)=> {
+        <form onSubmit={(e) => {
             e.preventDefault();
-            console.log(e);
+            const form = e.target as HTMLFormElement;
+            const machine_id = (form.elements.namedItem("machine_id") as HTMLInputElement).value;
+            console.log(machine_id);
         }}>
-            <label htmlFor="machineId">
-            <input id="machineId" type="text" size={74} placeholder="Paste your machineID here"/>
+            <label>
+                <input id="machine_id" type="text" maxLength={310} minLength={310}
+                       placeholder="Paste your machineID here" required/>
             </label>
             <button type="submit">Submit</button>
-            <a href="/machineID.ps1" onClick={() => {
-                console.log("Download");
-            }
-            }>Get my machineID</a>
+            <a href="/machineID.ps1">Get my machineID</a>
         </form>
-    )
+    );
+}
 
+function SetRefreshToken() {
+
+    return (
+        <>
+            TODO
+        </>
+    );
 }
 
 export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: MeProps) {
@@ -129,16 +137,21 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
                     {session.user.name}
                 </Text>
                 <div>
-                <Text h2>
-                    Machine ID : {machine_id_valid ? "✔": "false"}
-                </Text>
+                    <Text h2>
+                        Machine ID :
+                    </Text>
                     {
-                        machine_id_valid ? <>TODO</> : <SetNewMachineId/>
+                        machine_id_valid ? "✔" : <SetNewMachineId/>
                     }
                 </div>
-                <Text h2>
-                    Refresh Token : {refresh_token_valid}
-                </Text>
+                <div>
+                    <Text h2>
+                        Refresh Token :
+                    </Text>
+                    {
+                        refresh_token_valid ? "✔" : <SetRefreshToken/>
+                    }
+                </div>
                 <div className={styles.container}>
                     <ShareTable sharesProp={sharesProp}/>
                 </div>
@@ -181,8 +194,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
                 }
                 , {});
             steam_client.logOff();
-        } catch (error){
-            console.error("Error with steam login : ",error)
+        } catch (error) {
+            console.error("Error with steam login : ", error);
             refresh_token_valid = false;
         }
     }
@@ -193,7 +206,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
     let steam_profiles: SteamPlayerSummary[] = server_user.Borrowers.length > 0 ?
         (await steam_web.getPlayersSummary(server_user.Borrowers.map(b => b.id))) : [];
 
-    const shares : ShareArray = steam_profiles.map(profile => {
+    const shares: ShareArray = steam_profiles.map(profile => {
         let steam_id = profile.steamid;
         let user_info: BorrowingUser = {
             name: profile.personaname,

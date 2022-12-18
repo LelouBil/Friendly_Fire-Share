@@ -13,12 +13,12 @@ export default function App({Component, pageProps: {session, ...pageProps}}: App
 
     const darkTheme = createTheme({
         type: 'dark',
-        theme: {
-            colors: {
-                background: '#1d1d1d',
-                text: '#d52121'
-            }
-        }
+        // theme: {
+        //     colors: {
+        //         background: '#1d1d1d',
+        //         text: '#d52121'
+        //     }
+        // }
     });
 
     return (

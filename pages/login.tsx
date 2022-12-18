@@ -5,7 +5,7 @@ import {signIn} from "next-auth/react";
 import {GetServerSidePropsContext} from "next";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
-import getServerSession from "../lib/customSession";
+import {getServerSession} from "../lib/customSession";
 
 
 export default function Login() {
