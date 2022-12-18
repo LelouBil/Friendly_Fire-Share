@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Friendly Fire-Share.iml" filepath="$PROJECT_DIR$/.idea/Friendly Fire-Share.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../steamtest/.idea/steamtest.iml" filepath="$PROJECT_DIR$/../steamtest/.idea/steamtest.iml" />
     </modules>
   </component>
 </project>

@@ -1,7 +1,7 @@
 import styles from '@/styles/Me.module.css';
 import Head from "next/head";
-import React, {FormEventHandler, useEffect, useState} from "react";
-import {Button, Card, Checkbox, Input, Table, Text} from "@nextui-org/react";
+import React, {FormEventHandler, useEffect, useMemo, useState} from "react";
+import {Button, Card, Checkbox, Image, Input, Loading, Table, Text} from "@nextui-org/react";
 import {useSession} from "next-auth/react";
 import {GetServerSidePropsContext, GetServerSidePropsResult} from "next";
 import {Session} from "next-auth";
@@ -11,8 +11,9 @@ import {steam_web} from "../lib/steam_web";
 import createSteamUser from "../lib/customSteamUser";
 import {SteamPlayerSummary} from "steamwebapi-ts/lib/types/SteamPlayerSummary";
 import axios from "axios";
-import {EAuthTokenPlatformType, LoginSession} from "steam-session";
-import {log} from "util";
+import {EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession} from "steam-session";
+import {AllowedConfirmation, StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-internal";
+import { useQRCode } from 'next-qrcode';
 
 
 type ShareInfo = {
@@ -29,7 +30,16 @@ type BorrowingUser = {
 
 type ShareArray = (ShareInfo & BorrowingUser)[]
 
-type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_valid: boolean, session: Session };
+export type RefreshTokenData = {
+    clientId: string;
+    requestId: string; //buffer in original
+    pollInterval: number;
+    challengeUrl: string;
+    version: number;
+    allowedConfirmations: AllowedConfirmation[];
+}
+
+type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_data: RefreshTokenData | null, session: Session };
 
 function MeCard(props: { session: Session }) {
     return <Card variant={"bordered"} style={{width: "fit-content"}}>
@@ -96,7 +106,7 @@ function ShareTable({sharesProp}: { sharesProp: ShareArray }) {
     );
 }
 
-function SetNewMachineId({setValid}: {setValid: (valid: boolean) => void}) {
+function SetNewMachineId({setValid}: { setValid: (valid: boolean) => void }) {
 
     const [machineId, setMachineId] = useState("");
     const submitMachineId: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -119,36 +129,42 @@ function SetNewMachineId({setValid}: {setValid: (valid: boolean) => void}) {
     );
 }
 
-function SetRefreshToken({setValid}: {setValid: (valid: boolean) => void}) {
+function SetRefreshToken({refreshTokenData, fulfilled}: { refreshTokenData: RefreshTokenData, fulfilled: () => void}) {
 
-    const [loginSession,setLoginSession] = useState<LoginSession>(null!);
-    const [qrCodeUrl,setQRCodeUrl] = useState<string | null>(null);
 
-    function submitToken(refresh_token: string){
+    const submitData = useMemo(() => async () => {
+        await axios.post("/api/refreshToken/set",{refresh_token_data: refreshTokenData});
+        fulfilled();
+    },[]);
 
-    }
+    const { Canvas } = useQRCode();
 
-    useEffect(async () => {
-        setLoginSession(new LoginSession(EAuthTokenPlatformType.SteamClient));
-        loginSession?.on("authenticated", () => {
-            submitToken(loginSession!.refreshToken);
-        })
-        const result = await loginSession?.startWithQR();
-        setQRCodeUrl(result.qrChallengeUrl!);
-    })
     return (
-        <>
-            <div>TODO</div>
-        </>
+        <div>
+            <Canvas
+                text={refreshTokenData.challengeUrl}
+                options={{
+                    level: 'M',
+                    margin: 3,
+                    scale: 4,
+                    width: 200,
+                    color: {
+                        dark: '#010599FF',
+                        light: '#FFBF60FF',
+                    },
+                }}
+            />
+            <Button onClick={submitData}>J'ai scanné</Button>
+        </div>
     );
 }
 
-export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: MeProps) {
+export default function Me({sharesProp, machine_id_valid, refresh_token_data}: MeProps) {
 
     const {data: session} = useSession() as unknown as { data: Session };
 
     const [machineIdValid, setMachineIdValid] = useState(machine_id_valid);
-    const [refreshTokenValid, setRefreshTokenValid] = useState(refresh_token_valid);
+    const [refreshTokenData,setRefreshTokenData] = useState(refresh_token_data);
 
     console.log(session);
     return (
@@ -175,7 +191,7 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
                         Refresh Token :
                     </Text>
                     {
-                        refreshTokenValid ? "✔" : <SetRefreshToken setValid={setRefreshTokenValid}/>
+                        refreshTokenData !== null ? <SetRefreshToken fulfilled={() => setRefreshTokenData(null)} refreshTokenData={refreshTokenData}/> : "✔"
                     }
                 </div>
                 <div className={styles.container}>
@@ -189,6 +205,8 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_valid}: 
 export async function getServerSideProps(context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<MeProps>> {
 
     let session = await getServerSession(context);
+
+
     let server_user = await prisma.user.findUniqueOrThrow({
         where: {
             id: session.user.steam_id
@@ -198,10 +216,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
         }
     });
 
-    let refresh_token_valid = server_user.RefreshToken != null;
-    let machine_id_valid = server_user.MachineId != null;
-
-    console.log(JSON.stringify(server_user));
 
     let devices: { [steam_id: string]: any } = {};
 
@@ -211,7 +225,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
             let steam_client = await createSteamUser(server_user.RefreshToken, session.user.steam_id);
             console.log("Steam client logged in");
             let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
-            console.log(JSON.stringify(the_devices));
             devices = the_devices.reduce((obj, item) => {
 
                     if (item?.lastBorrower) {
@@ -223,7 +236,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
             steam_client.logOff();
         } catch (error) {
             console.error("Error with steam login :", error);
-            refresh_token_valid = false;
+            server_user.RefreshToken = null;
             await prisma.user.update({
                 where: {
                     id: session.user.steam_id
@@ -234,6 +247,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
             });
         }
     }
+
+    let refresh_token_data: RefreshTokenData | null = null;
+    if (server_user.RefreshToken == null) {
+
+        const loginSession = new LoginSession(EAuthTokenPlatformType.SteamClient);
+        loginSession._doPoll = async () => {};
+        await loginSession.startWithQR();
+        const qr_data = loginSession._startSessionResponse as StartAuthSessionWithQrResponse;
+        refresh_token_data = {
+            ...qr_data,
+            allowedConfirmations: [],
+            requestId: qr_data.requestId.toString("base64"),
+        };
+    }
+
+    let machine_id_valid = server_user.MachineId != null;
 
 
     // list.reduce((obj, item) => ({...obj, [item.name]: item.value}), {})
@@ -270,7 +299,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
     return {
         props: {
             sharesProp: shares,
-            refresh_token_valid,
+            refresh_token_data,
             machine_id_valid,
             session: session
         }
