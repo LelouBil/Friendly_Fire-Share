@@ -1,15 +1,21 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getApiServerSession} from "../../../lib/customSession";
 import {prisma} from "../../../lib/db";
+import {check_machine_id} from "../../../lib/check_machine_id";
+import {Buffer} from "buffer/";
 
 
 export default async function handler(req : NextApiRequest,res: NextApiResponse){
     const session = await getApiServerSession(req,res);
-    //todo verification valide
+
 
 
     if(!req.body.machine_id || typeof req.body.machine_id !== "string"){
         return res.status(400).send("Bad request, missing machine_id");
+    }
+
+    if(!check_machine_id(Buffer.from(req.body.machine_id, "hex"))){
+        return res.status(400).send("Bad request, machine_id invalid");
     }
 
 

@@ -13,13 +13,22 @@ import {SteamPlayerSummary} from "steamwebapi-ts/lib/types/SteamPlayerSummary";
 import axios from "axios";
 import {EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession} from "steam-session";
 import {AllowedConfirmation, StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-internal";
-import { useQRCode } from 'next-qrcode';
+import {useQRCode} from 'next-qrcode';
+import {string} from "prop-types";
+import {getDeviceName} from "./api/getDeviceName";
 
 
 type ShareInfo = {
     computer: string | null,
     lastUse: string | null,
     enabled: boolean
+}
+
+type LendInfo = {
+    steamId: string,
+    name: string,
+    enabled: boolean
+    deviceId: string | null
 }
 
 type BorrowingUser = {
@@ -39,7 +48,7 @@ export type RefreshTokenData = {
     allowedConfirmations: AllowedConfirmation[];
 }
 
-type MeProps = { sharesProp: ShareArray, machine_id_valid: boolean, refresh_token_data: RefreshTokenData | null, session: Session };
+type MeProps = { sharesProp: ShareArray, lendersProp: LendInfo[], machine_id_valid: boolean, refresh_token_data: RefreshTokenData | null, session: Session };
 
 function MeCard(props: { session: Session }) {
     return <Card variant={"bordered"} style={{width: "fit-content"}}>
@@ -129,15 +138,15 @@ function SetNewMachineId({setValid}: { setValid: (valid: boolean) => void }) {
     );
 }
 
-function SetRefreshToken({refreshTokenData, fulfilled}: { refreshTokenData: RefreshTokenData, fulfilled: () => void}) {
+function SetRefreshToken({refreshTokenData, fulfilled}: { refreshTokenData: RefreshTokenData, fulfilled: () => void }) {
 
 
     const submitData = useMemo(() => async () => {
-        await axios.post("/api/refreshToken/set",{refresh_token_data: refreshTokenData});
+        await axios.post("/api/refreshToken/set", {refresh_token_data: refreshTokenData});
         fulfilled();
-    },[]);
+    }, []);
 
-    const { Canvas } = useQRCode();
+    const {Canvas} = useQRCode();
 
     return (
         <div>
@@ -159,12 +168,12 @@ function SetRefreshToken({refreshTokenData, fulfilled}: { refreshTokenData: Refr
     );
 }
 
-export default function Me({sharesProp, machine_id_valid, refresh_token_data}: MeProps) {
+export default function Me({sharesProp, machine_id_valid, lendersProp, refresh_token_data}: MeProps) {
 
     const {data: session} = useSession() as unknown as { data: Session };
 
     const [machineIdValid, setMachineIdValid] = useState(machine_id_valid);
-    const [refreshTokenData,setRefreshTokenData] = useState(refresh_token_data);
+    const [refreshTokenData, setRefreshTokenData] = useState(refresh_token_data);
 
     console.log(session);
     return (
@@ -191,15 +200,73 @@ export default function Me({sharesProp, machine_id_valid, refresh_token_data}: M
                         Refresh Token :
                     </Text>
                     {
-                        refreshTokenData !== null ? <SetRefreshToken fulfilled={() => setRefreshTokenData(null)} refreshTokenData={refreshTokenData}/> : "✔"
+                        refreshTokenData !== null ? <SetRefreshToken fulfilled={() => setRefreshTokenData(null)}
+                                                                     refreshTokenData={refreshTokenData}/> : "✔"
                     }
                 </div>
                 <div className={styles.container}>
                     <ShareTable sharesProp={sharesProp}/>
                 </div>
+                <div className={styles.container}>
+                    <LendTable lenders={lendersProp}/>
+                </div>
             </main>
         </div>
     );
+}
+
+export function LendTable({lenders}: { lenders: LendInfo[] }) {
+
+    const [lends,setLends] = useState(lenders);
+
+    console.log("render lends");
+
+    const getShare = useMemo(() => {
+        return function (id: string) {
+            axios.post("/api/askShare",{lender: id})
+                .then(a => {
+                    setLends(lends.map(l => {
+                        if(l.steamId === id){
+                            return {...l,deviceId: a.data as string}
+                        } else return l
+                    }));
+                })
+                .catch(e => {
+                    setLends(lends.map(l => {
+                        if(l.steamId === id){
+                            return {...l,enabled: false}
+                        }else return l
+                    }));
+                    console.error(e);
+                })
+        }
+    }, [lenders]);
+
+    return (
+        <Table className={styles.table} aria-label="Lenders list">
+            <Table.Header>
+                <Table.Column>Name</Table.Column>
+                <Table.Column>Get share</Table.Column>
+            </Table.Header>
+            <Table.Body>
+                {lenders.map(lend => (
+                    <Table.Row key={lend.steamId}>
+                        <Table.Cell>{lend.name}</Table.Cell>
+                        <Table.Cell>
+                            {lend.deviceId ? <Text>
+                                    {lend.deviceId}
+                                </Text>
+                                :
+                                <Button disabled={!lend.enabled}
+                                        onClick={() => getShare(lend.steamId)}
+                                >Get Share</Button>
+                            }
+                        </Table.Cell>
+                    </Table.Row>
+                ))}
+            </Table.Body>
+        </Table>
+    )
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<MeProps>> {
@@ -212,7 +279,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
             id: session.user.steam_id
         },
         include: {
-            Borrowers: true
+            Borrowers: true,
+            BorrowsFrom: true
         }
     });
 
@@ -222,7 +290,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
     if (server_user.RefreshToken != null) {
         try {
             console.log(session.user.steam_id);
-            let steam_client = await createSteamUser(server_user.RefreshToken, session.user.steam_id);
+            let steam_client = await createSteamUser(server_user.RefreshToken, session.user.steam_id, null);
             console.log("Steam client logged in");
             let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
             devices = the_devices.reduce((obj, item) => {
@@ -235,16 +303,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
                 , {});
             steam_client.logOff();
         } catch (error) {
-            console.error("Error with steam login :", error);
             server_user.RefreshToken = null;
-            await prisma.user.update({
-                where: {
-                    id: session.user.steam_id
-                },
-                data: {
-                    RefreshToken: null
-                }
-            });
         }
     }
 
@@ -252,7 +311,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
     if (server_user.RefreshToken == null) {
 
         const loginSession = new LoginSession(EAuthTokenPlatformType.SteamClient);
-        loginSession._doPoll = async () => {};
+        loginSession._doPoll = async () => {
+        };
         await loginSession.startWithQR();
         const qr_data = loginSession._startSessionResponse as StartAuthSessionWithQrResponse;
         refresh_token_data = {
@@ -296,9 +356,48 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
         return {...user_info, ...share_info};
     });
 
+    let lenders: LendInfo[] = [];
+
+    if(machine_id_valid) {
+
+        const lenderNames: { [k: string]: string } = server_user.BorrowsFrom.length > 0 ?
+            (await steam_web.getPlayersSummary(server_user.BorrowsFrom.map(b => b.id)))
+                .reduce((acc, elem) => ({...acc, [elem.steamid]: elem.personaname}), {}) : {};
+
+
+        const lendedMap : { [k: string]: string | null} = await server_user.BorrowsFrom.reduce(async (accum,bf) => {
+            if (bf.RefreshToken !== null) {
+                const usr = await createSteamUser(bf.RefreshToken,bf.id,null);
+                let authorizedSharingDevices = await usr.getAuthorizedSharingDevices();
+                const finded = authorizedSharingDevices.devices.find(d =>
+                    d.deviceName === getDeviceName(server_user.id)
+                );
+                await usr.logOff();
+                if(finded !== undefined){
+                    return {...accum, [bf.id]: finded.deviceToken}
+                }else return {...accum,[bf.id]: null};
+            } else {
+                return {...accum,[bf.id]: null};
+            }
+        },{})
+
+
+
+        lenders = server_user.BorrowsFrom.map(bf => {
+                return {
+                    steamId: bf.id,
+                    name: lenderNames[bf.id],
+                    enabled: bf.RefreshToken != null,
+                    deviceId: lendedMap[bf.id]
+                }
+            })
+        ;
+    }
+
     return {
         props: {
             sharesProp: shares,
+            lendersProp: lenders,
             refresh_token_data,
             machine_id_valid,
             session: session
