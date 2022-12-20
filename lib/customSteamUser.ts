@@ -68,6 +68,7 @@ export default async function createSteamUser(refresh_token: string, steam_id: s
 }
 
 async function removeToken(steam_id: string) {
+    console.log(`Removing refresh token of user ${steam_id}`)
     await prisma.user.update({
         where: {
             id: steam_id

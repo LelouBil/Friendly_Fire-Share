@@ -21,6 +21,4 @@ export function check_machine_id(machineId: Buffer) {
         && machineId[0x99] === 8
         && machineId[0x9A] === 8
         ;
-    //todo
-    return true;
 }
