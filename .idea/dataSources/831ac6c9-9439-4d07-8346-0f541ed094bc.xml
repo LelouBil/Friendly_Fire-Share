@@ -42,7 +42,7 @@ friendly\\_fireshare\\_shadow|schema||friendly_fireshare||SELECT|G
 friendly\\_fireshare\\_shadow|schema||friendly_fireshare||SHOW VIEW|G
 friendly\\_fireshare\\_shadow|schema||friendly_fireshare||TRIGGER|G
 friendly\\_fireshare\\_shadow|schema||friendly_fireshare||UPDATE|G</Grants>
-      <ServerVersion>10.5.15</ServerVersion>
+      <ServerVersion>10.5.18</ServerVersion>
     </root>
     <collation id="2" parent="1" name="armscii8_bin">
       <Charset>armscii8</Charset>
@@ -1169,7 +1169,7 @@ B</ColNames>
       <Position>2</Position>
     </column>
     <column id="350" parent="330" name="MachineId">
-      <DasType>longblob|0s</DasType>
+      <DasType>varchar(310)|0s</DasType>
       <Position>3</Position>
     </column>
     <index id="351" parent="330" name="PRIMARY">

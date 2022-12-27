@@ -15,6 +15,7 @@ import {AllowedConfirmation, StartAuthSessionWithQrResponse} from "steam-session
 import {useQRCode} from 'next-qrcode';
 import {getDeviceName} from "./api/getDeviceName";
 import {getSharesOfUser, ShareArray} from "../lib/getSharesOfUser";
+import SteamID from "steamid";
 
 
 type LendInfo = {
@@ -96,7 +97,7 @@ export default function Me({sharesProp, machine_id_valid, lendersProp, refresh_t
                     </Card.Body>
                 </Card>
                 <div className={styles.tableContainer}>
-                    <LendTable lenders={lendersProp} canGet={machineIdValid}/>
+                    <LendTable lenders={lendersProp} canGet={machineIdValid} borrowerSteamId={session.user.steam_id}/>
                     <ShareTable sharesProp={sharesProp} canAdd={true} canRemove={refreshTokenData === null}/>
                 </div>
             </div>
@@ -240,9 +241,9 @@ function ShareTable({sharesProp, canRemove, canAdd}: ShareTableProps) {
     );
 }
 
-type LendTableProps = { lenders: LendInfo[], canGet: boolean };
+type LendTableProps = { lenders: LendInfo[], canGet: boolean, borrowerSteamId: string };
 
-export function LendTable({lenders, canGet}: LendTableProps) {
+export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
 
     const [lends, setLends] = useState(lenders);
 
@@ -266,8 +267,32 @@ export function LendTable({lenders, canGet}: LendTableProps) {
                 })
     }, [lenders]);
 
-    const copyCode = useCallback(async (code: string | null) => {
-            if(code) await navigator.clipboard.writeText(code);
+    const downloadScript = useCallback(async (lenderSteamId: string,deviceToken: string ) => {
+            const scriptPath = "/addShare.bat";
+            const script = (await axios.get(scriptPath)).data as string;
+            const edited_script = script.replace("%STEAM_ID%",new SteamID(lenderSteamId).steam3().split(":")[2].replace("]",""))
+                .replace("%DEVICE_TOKEN%",deviceToken)
+                .replace("%DEVICE_NAME%",getDeviceName(borrowerSteamId));
+
+            const a = document.createElement("a");
+            a.style.display = "none";
+            document.body.appendChild(a);
+
+            // Set the HREF to a Blob representation of the data to be downloaded
+            a.href = window.URL.createObjectURL(
+                new Blob([edited_script], { type:"text/plain" })
+            );
+
+            // Use download attribute to set desired file name
+            a.setAttribute("download", `addShare-${lenderSteamId}-${deviceToken}-${getDeviceName(borrowerSteamId).replace(" ", "_")}.bat`);
+
+            // Trigger the download by simulating click
+            a.click();
+
+            // Cleanup
+            window.URL.revokeObjectURL(a.href);
+            document.body.removeChild(a);
+
         }
         , []);
 
@@ -284,9 +309,8 @@ export function LendTable({lenders, canGet}: LendTableProps) {
                         <Table.Row key={lend.steamId}>
                             <Table.Cell>{lend.name}</Table.Cell>
                             <Table.Cell>
-                                {lend.deviceId ? <Button onClick={() => copyCode(lend.deviceId)}>
-                                        Copier le code :
-                                        {lend.deviceId}
+                                {lend.deviceId ? <Button onClick={() => downloadScript(lend.steamId,lend.deviceId!)}>
+                                        Télécharger le script
                                     </Button>
                                     :
                                     <Button disabled={!lend.enabled || !canGet}
