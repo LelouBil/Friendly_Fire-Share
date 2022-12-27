@@ -8,7 +8,7 @@ function prismUserToAdapterUser(user: User): AdapterUser {
         name: "",
         steam_id: user.id,
         refresh_token: user.RefreshToken,
-        sentry_file: user.SentryFile,
+        machine_id: user.MachineId,
         email: "",
         emailVerified: new Date()
     };
@@ -22,7 +22,7 @@ export default function MyAdapter(): Adapter {
                     data: {
                         id: user.steam_id,
                         RefreshToken: null,
-                        SentryFile: null
+                        MachineId: null
                     }
                 }).then(prismUserToAdapterUser);
         },

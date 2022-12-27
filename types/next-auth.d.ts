@@ -16,6 +16,6 @@ declare module "next-auth" {
         name: string,
         steam_id: string,
         refresh_token: string | null
-        machine_id: Buffer | null
+        machine_id: string | null
     }
 }
