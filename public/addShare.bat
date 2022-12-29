@@ -5,6 +5,8 @@ PowerShell -Command "Get-Content '%~dpnx0' | Select-Object -Skip 5 | Out-String 
 goto :eof
 # Start of PowerShell script here
 
+# TODO - Verif steam couped
+
 Function ConvertFrom-VDF {
     <#
 .Synopsis
@@ -177,7 +179,7 @@ $configBackupPath = Join-Path (Get-SteamPath) "config/config.vdf.bak"
 Copy-Item -Path $configPath -Destination $configBackupPath
 
 $config = ConvertFrom-VDF (Get-Content $configPath)
-$newDeviceConfig = [PSCustomObject]@{timeused="0";description=$deviceName;tokenid=$deviceToken}
+$newDeviceConfig = [PSCustomObject]@{timeused="1670955282";description=$deviceName;tokenid=$deviceToken}
 
 Add-Member -InputObject $config.InstallConfigStore.AuthorizedDevice -NotePropertyName $steamid -NotePropertyValue $newDeviceConfig
 
