@@ -1,10 +1,9 @@
-import { withAuth } from "next-auth/middleware"
-import {authOptions} from "./pages/api/auth/[...nextauth]";
+import {withAuth} from "next-auth/middleware";
 
 export default withAuth(
-    {
-        pages:{
-            signIn:"/login"
-        }
+  {
+    pages: {
+      signIn: "/login"
     }
+  }
 );
