@@ -21,8 +21,9 @@ import SteamID from "steamid";
 type LendInfo = {
   steamId: string,
   name: string,
-  enabled: boolean
-  deviceId: string | null
+  isAuthenticated: boolean
+  borrowerAuthorizedDeviceToken: string | null,
+  borrowerInCurrentShareList: boolean
 }
 
 
@@ -247,7 +248,8 @@ export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
 
   const [lends, setLends] = useState(lenders);
 
-
+  // TODO POST returns 409 if too many shares
+  // TODO Update button live
   const getShare = useCallback((id: string) => {
     axios.post("/api/askShare", {lender: id})
       .then(a => {
@@ -260,7 +262,7 @@ export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
       .catch(e => {
         setLends(lends.map(l => {
           if (l.steamId === id) {
-            return {...l, enabled: false};
+            return {...l, isLenderAuthenticated: false};
           } else return l;
         }));
         console.error(e);
@@ -309,11 +311,12 @@ export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
             <Table.Row key={lend.steamId}>
               <Table.Cell>{lend.name}</Table.Cell>
               <Table.Cell>
-                {lend.deviceId ? <Button onClick={() => downloadScript(lend.steamId, lend.deviceId!)}>
+                {lend.borrowerAuthorizedDeviceToken && lend.borrowerInCurrentShareList ? <Button onClick={() => downloadScript(lend.steamId, lend.borrowerAuthorizedDeviceToken!)}>
                     Télécharger le script
                   </Button>
                   :
-                  <Button disabled={!lend.enabled || !canGet}
+                  // TODO check if lender has not reached max shares
+                  <Button disabled={!lend.isAuthenticated || !canGet}
                           onClick={() => getShare(lend.steamId)}
                   >Get Share</Button>
                 }
@@ -373,29 +376,32 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
         .reduce((acc, elem) => ({...acc, [elem.steamid]: elem.personaname}), {}) : {};
 
 
-    const lendedMap: { [k: string]: string | null } = await server_user.BorrowsFrom.reduce(async (accum, bf) => {
+    const perLenderData: { [k: string]: {deviceToken: string | null, borrowerInCurrentShareList: boolean} } = await server_user.BorrowsFrom.reduce(async (accum, bf) => {
       if (bf.RefreshToken !== null) {
         const usr = await createSteamUser(bf.RefreshToken, bf.id, null);
         let authorizedSharingDevices = await usr.getAuthorizedSharingDevices();
         const finded = authorizedSharingDevices.devices.find(d =>
           d.deviceName === getDeviceName(server_user.id)
         );
+        const borrowerInCurrentShareList = (await usr.getAuthorizedBorrowers())
+          .borrowers.some(authborws => authborws.steamid.toString() == server_user.id);
         await usr.logOff();
         if (finded !== undefined) {
-          return {...accum, [bf.id]: finded.deviceToken};
-        } else return {...accum, [bf.id]: null};
+          return {...accum, [bf.id]: {deviceToken: finded.deviceToken, borrowerInCurrentShareList}};
+        } else return {...accum, [bf.id]: {deviceToken: null, borrowerInCurrentShareList: false}};
       } else {
-        return {...accum, [bf.id]: null};
+        return {...accum, [bf.id]: {deviceToken: null, borrowerInCurrentShareList: false}};
       }
     }, {});
 
 
-    lenders = server_user.BorrowsFrom.map(bf => {
+    lenders = server_user.BorrowsFrom.map(lender => {
       return {
-        steamId: bf.id,
-        name: lenderNames[bf.id],
-        enabled: bf.RefreshToken != null,
-        deviceId: lendedMap[bf.id]
+        steamId: lender.id,
+        name: lenderNames[lender.id],
+        isAuthenticated: lender.RefreshToken != null,
+        borrowerAuthorizedDeviceToken: perLenderData[lender.id].deviceToken,
+        borrowerInCurrentShareList: perLenderData[lender.id].borrowerInCurrentShareList,
       };
     })
     ;

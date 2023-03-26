@@ -54,7 +54,7 @@ export default async function createSteamUser(refresh_token: string, steam_id: s
       }
 
     });
-    let details = {refreshToken: refresh_token, machineName: "Friendly Fire-Share", logonID: randomInt(100, 999)}; //todo random logonId
+    let details = {refreshToken: refresh_token, machineName: "Friendly Fire-Share", logonID: randomInt(100, 999)};
     // @ts-ignore
     user._getMachineID = () => {
       console.log("using machineId");

@@ -57,10 +57,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const refreshToken = userWithLender.BorrowsFrom[0].RefreshToken;
 
 
+  let steamUser: SteamUser;
   try {
-    let steamUser = await createSteamUser(refreshToken, lender, userWithLender.MachineId);
-    //todo people check
+    steamUser = await createSteamUser(refreshToken, lender, userWithLender.MachineId);
+    console.log("ASKSHARE - Created steam user")
+    const currentBorrowers = await steamUser.getAuthorizedBorrowers();
+    if(currentBorrowers.borrowers.length >= 3){ //todo test
+      await steamUser.logOff();
+      return res.status(409).send(`${lender} already has maximum people shared !`);
+      //todo logique de suppression des non utilisés
+    }
     await steamUser.addAuthorizedBorrowers(userWithLender.id);
+    console.log("ASKSHARE - Added user as authorized borrower")
     var newVar = await steamUser.getAuthorizedSharingDevices();
     let authorization: string;
     let found = newVar.devices.find(d => d.deviceName === getDeviceName(userWithLender.id))?.deviceToken;
@@ -71,6 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await steamUser.logOff();
     return res.status(200).send(authorization);
   } catch (e) {
+    await steamUser.logOff();
     console.error(e);
     if (e === SteamUserErrors.RefreshTokenInvalid) {
       return refreshTokenError();
