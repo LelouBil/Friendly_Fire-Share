@@ -35,7 +35,7 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.OIDC_STEAM_CLIENT_SECRET,
       type: "oauth",
       idToken: true,
-      wellKnown: process.env.OIDC_STEAM_CLIENT_URL, // TODO: change this to the real one
+      wellKnown: process.env.OIDC_STEAM_CLIENT_URL,
       authorization: {params: {scope: "openid profile"}},
       profile(data: any) {
         return {

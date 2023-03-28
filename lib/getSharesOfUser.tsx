@@ -1,7 +1,7 @@
 import {SteamPlayerSummary} from "steamwebapi-ts/lib/types/SteamPlayerSummary";
 import {steam_web} from "./steam_web";
 import {User} from "@prisma/client";
-import createSteamUser from "./customSteamUser";
+import withSteamUser from "./customSteamUser";
 
 export async function getSharesOfUser(server_user: User & { Borrowers: User[] }) {
 
@@ -11,10 +11,9 @@ export async function getSharesOfUser(server_user: User & { Borrowers: User[] })
   if (server_user.RefreshToken != null) {
     try {
       console.log(server_user.id);
-      let steam_client = await createSteamUser(server_user.RefreshToken, server_user.id, null);
-      console.log("Steam client logged in");
-      let the_devices = (await steam_client.getAuthorizedSharingDevices()).devices;
-      devices = the_devices.reduce((obj, item) => {
+      let device_list = await withSteamUser(server_user.RefreshToken, server_user.id, null,
+          async (user) => (await user.getAuthorizedSharingDevices()).devices);
+      devices = device_list.reduce((obj, item) => {
 
           if (item?.lastBorrower) {
             return {...obj, [item.lastBorrower.getSteamID64()]: item};
@@ -22,7 +21,6 @@ export async function getSharesOfUser(server_user: User & { Borrowers: User[] })
             return obj;
         }
         , {});
-      steam_client.logOff();
     } catch (error) {
       server_user.RefreshToken = null;
     }

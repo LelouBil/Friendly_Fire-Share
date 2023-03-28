@@ -1,58 +1,68 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getApiServerSession} from "@/lib/customSession";
-import createSteamUser, {SteamUserErrors} from "@/lib/customSteamUser";
+import withSteamUser, {SteamUserErrors} from "@/lib/customSteamUser";
 import {prisma} from "@/lib/db";
 import {getDeviceName} from "../getDeviceName";
 
+
+export type RemoveBorrowerBody = {
+    borrower_steam_id: string,
+    remove_from_database: boolean
+}
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getApiServerSession(req, res);
+    const session = await getApiServerSession(req, res);
 
 
-  if (!req.body.borrower || typeof req.body.borrower !== "string") {
-    return res.status(400).send("Missing property borrower");
-  }
+    if (!req.body || typeof req.body !== "object") {
+        return res.status(400).send("Missing body data");
+    }
 
 
-  const borrower = req.body.borrower;
+    const remove_data: RemoveBorrowerBody = req.body;
 
-  await prisma.user
-    .update({
-      where: {
-        id: session.user.steam_id
-      },
-      data: {
-        Borrowers: {
-          disconnect: {
-            id: borrower
-          }
+
+    const dbUser = await prisma.user
+        .findUniqueOrThrow({
+            where: {
+                id: session.user.steam_id
+            }
+        });
+
+    if (dbUser.RefreshToken === null) {
+        return res.status(400).send("Refresh token missing");
+    }
+
+    try {
+        await withSteamUser(dbUser.RefreshToken, dbUser.id, null,
+            async (user) => {
+                const foundShare = (await user.getAuthorizedSharingDevices()).devices
+                    .find(d => d.deviceName === getDeviceName(remove_data.borrower_steam_id));
+                if (foundShare) {
+                    await user.deauthorizeSharingDevice(foundShare.deviceToken);
+                }
+                await user.removeAuthorizedBorrowers([remove_data.borrower_steam_id]);
+            });
+
+        if (remove_data.remove_from_database) {
+            await prisma.user
+                .update({
+                    where: {
+                        id: session.user.steam_id
+                    },
+                    data: {
+                        Borrowers: {
+                            disconnect: {
+                                id: remove_data.borrower_steam_id
+                            }
+                        }
+                    }
+                });
         }
-      }
-    });
-
-  const dbUser = await prisma.user
-    .findUniqueOrThrow({
-      where: {
-        id: session.user.steam_id
-      }
-    });
-
-  if (dbUser.RefreshToken === null) {
-    return res.status(400).send("Refresh token missing");
-  }
-
-  try {
-    const login = await createSteamUser(dbUser.RefreshToken, dbUser.id, null);
-    const foundShare = (await login.getAuthorizedSharingDevices()).devices
-      .find(d => d.deviceName === getDeviceName(borrower));
-    if (foundShare) {
-      await login.deauthorizeSharingDevice(foundShare.deviceToken);
+        return res.status(200).send("Deauthorized");
+    } catch (e) {
+        if (e === SteamUserErrors.RefreshTokenInvalid) {
+            return res.status(400).send("Refresh token invalid");
+        }
     }
-
-    return res.status(200).send("Deauthorized");
-  } catch (e) {
-    if (e === SteamUserErrors.RefreshTokenInvalid) {
-      return res.status(400).send("Refresh token invalid");
-    }
-  }
 
 }

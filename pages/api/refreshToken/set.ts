@@ -4,12 +4,11 @@ import {prisma} from "@/lib/db";
 import {RefreshTokenData} from "../../me";
 import {StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-internal";
 import {EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession} from "steam-session";
+import {invalidateSteamUser} from "@/lib/customSteamUser";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getApiServerSession(req, res);
-  //todo vérification valide
-
 
   if (!req.body.refresh_token_data || typeof req.body.refresh_token_data !== "object") {
     return res.status(400).send("Bad request, missing refresh_token_data");
@@ -48,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       RefreshToken: steam_session.refreshToken
     }
   });
+  await invalidateSteamUser(session.user.steam_id);
 
 
   console.log(`Updated refresh_token of user ${session.user.name}`);

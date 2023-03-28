@@ -3,6 +3,7 @@ import {getApiServerSession} from "@/lib/customSession";
 import {prisma} from "@/lib/db";
 import {check_machine_id} from "@/lib/check_machine_id";
 import {Buffer} from "buffer/";
+import {invalidateSteamUser} from "@/lib/customSteamUser";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -26,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       MachineId: req.body.machine_id
     }
   });
+  await invalidateSteamUser(session.user.steam_id);
   console.log(`Updated machine_id of user ${session.user.name}`);
   return res.status(200);
 }

@@ -202,10 +202,15 @@
   resolved "https://registry.yarnpkg.com/@bbob/plugin-helper/-/plugin-helper-2.8.2.tgz#5c7bd6c6ed90085bd339ffcb19ced0944725fe4e"
   integrity sha512-EYAdwlgXYNwN1jeT3e35OZwwrpZhHk6WBaSA2fkMTOvR0+U59Qj6IunVmApXfQ2gfDrRRqzErTcVjSbyKC6EJQ==
 
-"@doctormckay/stdlib@^1.11.1", "@doctormckay/stdlib@^1.14.1", "@doctormckay/stdlib@^1.6.0", "@doctormckay/stdlib@^1.8.0":
+"@doctormckay/stdlib@^1.14.1", "@doctormckay/stdlib@^1.6.0", "@doctormckay/stdlib@^1.8.0":
   version "1.15.0"
   resolved "https://registry.yarnpkg.com/@doctormckay/stdlib/-/stdlib-1.15.0.tgz#b4be501c74083bc1030ede555fda08a0fd4c89a4"
   integrity sha512-2WaxuaCNYBkKX3qkNxj1HNBye2WcJ0RcO4oM4MVcCTS+5CsCE9XrPMdLzRh2yEiI+5f6eXG/H8624vKGeMPDLw==
+
+"@doctormckay/stdlib@^1.15.0", "@doctormckay/stdlib@^1.15.1":
+  version "1.15.1"
+  resolved "https://registry.yarnpkg.com/@doctormckay/stdlib/-/stdlib-1.15.1.tgz#db07991e5aef986681db9d5ea18dbca45cd31e8d"
+  integrity sha512-Sza+d7pLU6GxbXgPLfsJ/LphSYzflNGTr8SeaA6plLLsOUplfCDCpDtxTF3AMPkE9mCwA8K28s25jchRiv2/4g==
 
 "@doctormckay/steam-crypto@^1.2.0":
   version "1.2.0"
@@ -1150,10 +1155,10 @@
   resolved "https://registry.yarnpkg.com/@types/steamid/-/steamid-2.0.1.tgz#79e164f2da554ca7d2ecf4acc80b2560d6639e4c"
   integrity sha512-B8sy9wfOOeh+yNrFFzyghCQ1n3rssYbTvZD2kXzuy3HSJEK7TVeYnrpXG/0dOKrq1VU8D7cWORgszsdqKBZnVg==
 
-adm-zip@^0.4.13:
-  version "0.4.16"
-  resolved "https://registry.yarnpkg.com/adm-zip/-/adm-zip-0.4.16.tgz#cf4c508fdffab02c269cbc7f471a875f05570365"
-  integrity sha512-TFi4HBKSGfIKsK5YCkKaaFG2m4PEDyViZmEwof3MTIgzimHLto6muaHVpbrljdIvIrFZzEq/p4nafOeLcYegrg==
+adm-zip@^0.5.10:
+  version "0.5.10"
+  resolved "https://registry.yarnpkg.com/adm-zip/-/adm-zip-0.5.10.tgz#4a51d5ab544b1f5ce51e1b9043139b639afff45b"
+  integrity sha512-x0HvcHqVJNTPk/Bw8JbLWlWoo6Wwnsug0fnYYro1HBrjxZ3G7/AZk7Ahv8JwDe1uIcz8eBqvu86FuF1POiG7vQ==
 
 agent-base@^6.0.2:
   version "6.0.2"
@@ -1246,6 +1251,14 @@ bytebuffer@^5.0.0, bytebuffer@^5.0.1:
   integrity sha512-IuzSdmADppkZ6DlpycMkm8l9zeEq16fWtLvunEwFiYciR/BHo4E8/xs5piFquG+Za8OWmMqHF8zuRviz2LHvRQ==
   dependencies:
     long "~3"
+
+cache-manager@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/cache-manager/-/cache-manager-5.2.0.tgz#2ea6bd8cf6bfb1bd40690a1fe194327595e3bd8f"
+  integrity sha512-jwXDLtn8tQGS2vGDTKAhee2OhuX/2cgxlh97fqMnWp328VszIn064BFyKZ87dwp9GmlBFuHYfaVQehI85hFwIw==
+  dependencies:
+    lodash.clonedeep "^4.5.0"
+    lru-cache "~7.18.3"
 
 call-bind@^1.0.2:
   version "1.0.2"
@@ -1344,7 +1357,7 @@ dayjs@^1.11.1:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.7.tgz#4b296922642f70999544d1144a2c25730fce63e2"
   integrity sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==
 
-debug@4, debug@^4.1.0, debug@^4.3.3:
+debug@4, debug@^4.1.0, debug@^4.3.3, debug@^4.3.4:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
   integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
@@ -1565,6 +1578,11 @@ locate-path@^5.0.0:
   dependencies:
     p-locate "^4.1.0"
 
+lodash.clonedeep@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
+  integrity sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==
+
 long@^3.2.0, long@~3:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/long/-/long-3.2.0.tgz#d821b7138ca1cb581c172990ef14db200b5c474b"
@@ -1593,6 +1611,11 @@ lru-cache@^6.0.0:
   integrity sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==
   dependencies:
     yallist "^4.0.0"
+
+lru-cache@~7.18.3:
+  version "7.18.3"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-7.18.3.tgz#f793896e0fd0e954a59dfdd82f0773808df6aa89"
+  integrity sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==
 
 lzma@^2.3.2:
   version "2.3.2"
@@ -1784,7 +1807,7 @@ prisma@^4.7.1:
   dependencies:
     "@prisma/engines" "4.7.1"
 
-protobufjs@^6.8.8:
+protobufjs@^6.11.3, protobufjs@^6.8.8:
   version "6.11.3"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.11.3.tgz#637a527205a35caa4f3e2a9a4a13ddffe0e7af74"
   integrity sha512-xL96WDdCZYdU7Slin569tFX712BxsxslWwAfAhCYjQKGTq7dAU91Lomy6nLLhh/dyGhk/YH4TwTSRxTzhuHyZg==
@@ -1931,28 +1954,43 @@ steam-session@^0.0.3-alpha:
     protobufjs "^7.1.0"
     steamid "^2.0.0"
 
+steam-session@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/steam-session/-/steam-session-1.1.0.tgz#0f720db462cbfc6f333097f64c4fd210e79c7c64"
+  integrity sha512-qfA/GkK8O9KOdqufTFwt/QY/BAi9LF7u9mhBiFPcGjEgcs3lVP7sRweS5f/r8s0TvVGvq5RTCvrpI+Ur7+r2OQ==
+  dependencies:
+    "@doctormckay/stdlib" "^1.15.0"
+    debug "^4.3.4"
+    node-bignumber "^1.2.2"
+    protobufjs "^7.1.0"
+    socks-proxy-agent "^7.0.0"
+    steamid "^2.0.0"
+    vdf "^0.0.2"
+    websocket13 "^2.2.0"
+
 steam-totp@^2.0.1:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/steam-totp/-/steam-totp-2.1.2.tgz#ab03eea28e40dedddde3041468dc8551055d84cc"
   integrity sha512-bTKlc/NoIUQId+my+O556s55DDsNNXfVIPWFDNVu68beql7AJhV0c+GTjFxfwCDYfdc4NkAme+0WrDdnY2D2VA==
 
-steam-user@^4.26.0:
-  version "4.26.0"
-  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-4.26.0.tgz#bb9cca635e5e4ac4deb059bd9ce90876ac4466fe"
-  integrity sha512-+hVOVWq7U8ZFzLtOf41EVreDfq2ghrocNaev1E5zkiC6X8LJ7vkAjskRmMmQrw84imjd91NiQuVf2TReB9DkDQ==
+steam-user@^4.26.1:
+  version "4.28.0"
+  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-4.28.0.tgz#47407f495e613d3baede9d60c88a1bbe70f1bd6a"
+  integrity sha512-TajS+/XcDAnpoQXsus9hPr8fPxsN65StmiEMcVP2iDakw22tu4SmqsWE9glXKCBCfoRJcFyl5ltgGa2+BRnawg==
   dependencies:
     "@bbob/parser" "^2.2.0"
-    "@doctormckay/stdlib" "^1.11.1"
+    "@doctormckay/stdlib" "^1.15.1"
     "@doctormckay/steam-crypto" "^1.2.0"
-    adm-zip "^0.4.13"
+    adm-zip "^0.5.10"
     appdirectory "^0.1.0"
     binarykvparser "^2.2.0"
     bytebuffer "^5.0.0"
     file-manager "^2.0.0"
     lzma "^2.3.2"
-    protobufjs "^6.8.8"
+    protobufjs "^6.11.3"
     socks-proxy-agent "^7.0.0"
     steam-appticket "^1.0.1"
+    steam-session "^1.1.0"
     steam-totp "^2.0.1"
     steamid "^1.1.0"
     vdf "^0.0.2"
@@ -2066,7 +2104,7 @@ websocket-extensions@^0.1.2:
   resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.4.tgz#7f8473bc839dfd87608adb95d7eb075211578a42"
   integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
 
-websocket13@^2.1.3:
+websocket13@^2.1.3, websocket13@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/websocket13/-/websocket13-2.2.0.tgz#5a0b3de1437455de322682b93ebb4e4dd8ad09d1"
   integrity sha512-m3aS0sLEM9dRM2+Cvgakdr/oLqyfAObdUlUqU3gdw3PuI81k1Hw3PWdwJsehvRRlScHolA13yYsx/X3OUzsTLA==
