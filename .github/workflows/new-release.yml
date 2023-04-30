@@ -1,3 +1,4 @@
+name: Publish Sentry Release
 on:
   push:
     tags:
