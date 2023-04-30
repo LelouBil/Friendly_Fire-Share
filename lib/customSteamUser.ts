@@ -5,9 +5,6 @@ import {EResult} from "steam-session";
 import {Buffer} from "buffer/";
 import {check_machine_id} from "./check_machine_id";
 import {randomInt} from "crypto";
-import {caching, MemoryCache} from "cache-manager"
-import {PrismaClient} from "@prisma/client";
-import {Steam} from "steamwebapi-ts";
 
 export enum SteamUserErrors {
     MachineIdInvalid,
