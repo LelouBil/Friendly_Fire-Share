@@ -1,0 +1,46 @@
+{
+  "app_name": "Friendly Fire-Share",
+  "lend": {
+    "askShare": {
+      "error": "Une erreur est survenue, code {{errorStatus}}",
+      "askShareButton": "Récupérer le partage"
+    },
+    "list": {
+      "tableName": "Utilisateurs qui vous partagent",
+      "columns": {
+        "name": "Nom",
+        "getShare": "Récupérer le partage"
+      }
+    },
+    "getShare": {
+      "downloadScript": "Télécharger le script"
+    }
+  },
+  "shares": {
+    "list": {
+      "tableName": "Utilisateurs autorisés a emprunter",
+      "columns": {
+        "name": "Nom",
+        "computer": "Ordinateur",
+        "inUse": "Actuellement utilisé",
+        "unauthorize": "Révoquer"
+      },
+      "inUse": {
+        "yes": "Oui",
+        "no": "Non"
+      },
+      "unauthorize": {
+        "buttonText": "Révoquer {{borrower}}"
+      }
+    },
+    "addUser": {
+      "dropDownText": "Sélectionner un ami",
+      "buttonText": "Autoriser {{friend}} à emprunter"
+    }
+  },
+  "card": {
+    "machineId": "Machine ID",
+    "refreshToken": "Refresh Token",
+    "imageAlt": "Votre photo de profil Steam"
+  }
+}

@@ -1,7 +1,7 @@
 @echo off
 Rem Make powershell read this file, skip a number of lines, and execute it.
 Rem This works around .ps1 bad file association as non executables.
-PowerShell -Command "Get-Content '%~dpnx0' | Select-Object -Skip 5 | Out-String | Invoke-Expression"
+PowerShell -Command "Get-Content -Encoding UTF8 '%~dpnx0' | Select-Object -Skip 5 | Out-String | Invoke-Expression"
 goto :eof
 # Start of PowerShell script here
 
@@ -168,19 +168,30 @@ Function Get-SteamID64 {
 
     return "7656119$(($Z * 2) + (7960265728 + $Y))"
 }
+chcp 65001
+Add-Type -AssemblyName PresentationFramework
+
+$pscount = (Get-Process -ErrorAction SilentlyContinue steam).Count
+
+if ($pscount -gt 0 ){
+    [System.Windows.MessageBox]::Show("Steam est en cours, veuillez le fermer puis relancer le script","Steam est lancé","OK","Warn")
+    exit
+}
 
 $steamid = "%STEAM_ID%"
 $deviceName = "%DEVICE_NAME%"
 $deviceToken = "%DEVICE_TOKEN%"
-
+echo "éééééé"
 $configPath = Join-Path (Get-SteamPath) "config/config.vdf"
 $configBackupPath = Join-Path (Get-SteamPath) "config/config.vdf.bak"
 
 Copy-Item -Path $configPath -Destination $configBackupPath
 
-$config = ConvertFrom-VDF (Get-Content $configPath)
+$config = ConvertFrom-VDF (Get-Content $configPath | Where-Object {$_ -notmatch "^\s*$"})
 $newDeviceConfig = [PSCustomObject]@{timeused="1670955282";description=$deviceName;tokenid=$deviceToken}
 
-Add-Member -InputObject $config.InstallConfigStore.AuthorizedDevice -NotePropertyName $steamid -NotePropertyValue $newDeviceConfig
+Add-Member -Force -InputObject $config.InstallConfigStore.AuthorizedDevice -NotePropertyName $steamid -NotePropertyValue $newDeviceConfig
 
 ConvertTo-VDF $config | Out-File $configPath
+
+[System.Windows.MessageBox]::Show("Partage ajouté avec succès","Succès","OK","Info")

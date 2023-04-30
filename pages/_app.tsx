@@ -5,8 +5,9 @@ import {ThemeProvider as NextThemesProvider} from 'next-themes';
 import type {AppProps} from 'next/app';
 import {SSRProvider} from "@react-aria/ssr";
 import Header from "../components/header";
+import {appWithTranslation} from "next-i18next";
 
-export default function App({Component, pageProps: {session, ...pageProps}}: AppProps) {
+export default appWithTranslation(function App({Component, pageProps: {session, ...pageProps}}: AppProps) {
   const lightTheme = createTheme({
     type: 'light'
   });
@@ -35,4 +36,4 @@ export default function App({Component, pageProps: {session, ...pageProps}}: App
     </NextThemesProvider>
 
   );
-}
+});
