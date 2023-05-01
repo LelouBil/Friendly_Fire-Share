@@ -44,7 +44,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "Uploading sourcemap to sentry"
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
