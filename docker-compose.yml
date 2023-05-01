@@ -1,0 +1,68 @@
+version: '3.9'
+services:
+  fireshare:
+    restart: unless-stopped
+    image: ghcr.io/leloubil/friendly_fire-share:latest
+    env_file:
+      - stack.env
+    environment:
+      - DATABASE_URL=postgresql://fireshare:fireshare@database/fireshare
+      - NEXTAUTH_URL=${BASE_URL}
+      - OIDC_STEAM_CLIENT_URL=${BASE_URL}/oidc/
+      - DATABASE_TYPE=postgresql
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fireshare.rule=!PathPrefix(`/oidc`)"
+      - "traefik.http.services.fireshare-service.loadbalancer.server.port=3000"
+      - "traefik.http.routers.fireshare.entrypoints=web"
+  database:
+    restart: unless-stopped
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=fireshare
+      - POSTGRES_PASSWORD=fireshare
+    volumes:
+      - fireshare-data:/var/lib/postgresql/data
+    networks:
+      - default
+  steam-oidc-proxy:
+    restart: unless-stopped
+    image: ghcr.io/byo-software/steam-openid-connect-provider
+    environment:
+      OpenID__ClientID: ${OIDC_STEAM_CLIENT_ID}
+      OpenID__ClientName: ${OIDC_STEAM_CLIENT_ID}
+      OpenId__ClientSecret: ${OIDC_STEAM_CLIENT_SECRET}
+      OpenID__RedirectUri: ${BASE_URL}/api/auth/callback/steam
+      Steam__ApplicationKey: ${STEAM_WEB_API_KEY}
+      Hosting__BasePath: /oidc
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.steam-oidc-proxy.rule=PathPrefix(`/oidc`)"
+      - "traefik.http.routers.steam-oidc-proxy.entrypoints=web"
+  traefik:
+    restart: unless-stopped
+    image: traefik:latest
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+      - "--log.format=json"
+      - "--entryPoints.web.forwardedHeaders.insecure"
+
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - proxy
+
+volumes:
+  fireshare-data:
+networks:
+  proxy:
+    external: true
