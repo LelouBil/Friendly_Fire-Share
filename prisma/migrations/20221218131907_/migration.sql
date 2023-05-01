@@ -5,4 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE `user` MODIFY `MachineId` VARCHAR(310) NULL;
+ALTER TABLE `User` MODIFY `MachineId` VARCHAR(310) NULL;

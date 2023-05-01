@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `user` MODIFY `RefreshToken` TEXT NULL;
+ALTER TABLE `User` MODIFY `RefreshToken` TEXT NULL;

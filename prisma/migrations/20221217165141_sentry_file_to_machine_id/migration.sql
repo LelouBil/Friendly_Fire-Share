@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE `user` DROP COLUMN `SentryFile`,
+ALTER TABLE `User` DROP COLUMN `SentryFile`,
     ADD COLUMN `MachineId` LONGBLOB NULL;
