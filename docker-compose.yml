@@ -6,10 +6,9 @@ services:
     env_file:
       - stack.env
     environment:
-      - DATABASE_URL=postgresql://fireshare:fireshare@database/fireshare
+      - DATABASE_URL=mysql://fireshare:fireshare@database/fireshare
       - NEXTAUTH_URL=${BASE_URL}
       - OIDC_STEAM_CLIENT_URL=${BASE_URL}/oidc/
-      - DATABASE_TYPE=postgresql
     networks:
       - default
     labels:
@@ -19,10 +18,12 @@ services:
       - "traefik.http.routers.fireshare.entrypoints=web"
   database:
     restart: unless-stopped
-    image: postgres:latest
+    image: mysql:latest
     environment:
-      - POSTGRES_USER=fireshare
-      - POSTGRES_PASSWORD=fireshare
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_USER=fireshare
+      - MYSQL_PASSWORD=fireshare
+      - MYSQL_DATABASE=fireshare
     volumes:
       - fireshare-data:/var/lib/postgresql/data
     networks:
