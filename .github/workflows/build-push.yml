@@ -51,4 +51,4 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ startsWith(github.ref, 'refs/tags/v') && 'SENTRY_AUTH_TOKEN=' + secrets.SENTRY_AUTH_TOKEN || '' }}
+          build-args: ${{ startsWith(github.ref, 'refs/tags/v') && format('{0}={1}','SENTRY_AUTH_TOKEN',secrets.SENTRY_AUTH_TOKEN) || '' }}
