@@ -19,6 +19,7 @@ import {serverSideTranslations} from 'next-i18next/serverSideTranslations';
 import {SSRConfig, Trans, useTranslation} from "next-i18next";
 import {RefreshTokenData} from "@/pages/api/refreshToken/getData";
 import {AbortSignal} from "next/dist/compiled/@edge-runtime/primitives/abort-controller";
+import * as Sentry from "@sentry/browser"
 
 
 type LendInfo = {
@@ -77,6 +78,12 @@ function MeCard(props: { session: Session }) {
 export default function Index({sharesProp, machine_id_valid, lendersProp, refresh_token_valid, friendIdList}: MeProps) {
 
     const {data: session} = useSession() as unknown as { data: Session };
+
+    Sentry.setUser({
+        id: session.user.steam_id,
+        username: session.user.name
+    })
+
     const [machineIdValid, setMachineIdValid] = useState(machine_id_valid);
     const [refreshTokenValid, setRefreshTokenValid] = useState(refresh_token_valid);
 
@@ -470,6 +477,7 @@ export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext): Promise<GetServerSidePropsResult<MeProps>> {
     let session = await getServerSession(context);
+
 
     let server_user = await prisma.user.findUniqueOrThrow({
         where: {

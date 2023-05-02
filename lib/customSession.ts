@@ -3,6 +3,7 @@ import {unstable_getServerSession} from "next-auth/next";
 import {authOptions} from "@/pages/api/auth/[...nextauth]";
 import {Session} from "next-auth";
 import {NextResponse} from "next/server";
+import * as Sentry from "@sentry/nextjs"
 
 export async function getServerSession(ctx: GetServerSidePropsContext): Promise<Session> {
   return getActualServerSession(ctx.req, ctx.res);
@@ -14,6 +15,12 @@ async function getActualServerSession(req: GetServerSidePropsContext["req"] | Ne
   let session = await unstable_getServerSession(req, res, authOptions);
   if (session == null) {
     console.warn("Session est null, alors que normalement non");
+    Sentry.setUser(null)
+  }else{
+    Sentry.setUser({
+      id: session.user.steam_id,
+      username: session.user.name
+    })
   }
   return session!;
 }
