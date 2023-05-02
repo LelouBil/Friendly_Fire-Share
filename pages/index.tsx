@@ -18,6 +18,7 @@ import {RemoveBorrowerBody} from "@/pages/api/shares/remove";
 import {serverSideTranslations} from 'next-i18next/serverSideTranslations';
 import {SSRConfig, Trans, useTranslation} from "next-i18next";
 import {RefreshTokenData} from "@/pages/api/refreshToken/getData";
+import {AbortSignal} from "next/dist/compiled/@edge-runtime/primitives/abort-controller";
 
 
 type LendInfo = {
@@ -182,7 +183,7 @@ function SetRefreshToken({setValid}: { setValid: (isValid: boolean) => void }) {
         axios.post("/api/refreshToken/getData")
             .then(res => {
                 setRefreshTokenData(res.data)
-                axios.post("/api/refreshToken/set", {refresh_token_data: res.data as RefreshTokenData})
+                axios.post("/api/refreshToken/set", {refresh_token_data: res.data as RefreshTokenData},{signal: AbortSignal.timeout(29000)})
                     .then(() => {
                         setHasFailed(false);
                         setValid(true)
