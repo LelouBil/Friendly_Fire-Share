@@ -4,8 +4,7 @@ Rem This works around .ps1 bad file association as non executables.
 PowerShell -Command "Get-Content -Encoding UTF8 '%~dpnx0' | Select-Object -Skip 5 | Out-String | Invoke-Expression"
 goto :eof
 # Start of PowerShell script here
-
-# TODO - Verif steam couped
+$ErrorActionPreference = "Stop"
 
 Function ConvertFrom-VDF {
     <#
@@ -168,7 +167,6 @@ Function Get-SteamID64 {
 
     return "7656119$(($Z * 2) + (7960265728 + $Y))"
 }
-chcp 65001
 Add-Type -AssemblyName PresentationFramework
 
 $pscount = (Get-Process -ErrorAction SilentlyContinue steam).Count
@@ -190,8 +188,12 @@ Copy-Item -Path $configPath -Destination $configBackupPath
 $config = ConvertFrom-VDF (Get-Content $configPath | Where-Object {$_ -notmatch "^\s*$"})
 $newDeviceConfig = [PSCustomObject]@{timeused="1670955282";description=$deviceName;tokenid=$deviceToken}
 
+if($config.InstallConfigStore.AuthorizedDevice -eq $null){
+    $subKey = [PsCustomObject]@{}
+    Add-Member -InputObject $config.InstallConfigStore -NotePropertyName AuthorizedDevice -NotePropertyValue $subKey
+}
 Add-Member -Force -InputObject $config.InstallConfigStore.AuthorizedDevice -NotePropertyName $steamid -NotePropertyValue $newDeviceConfig
 
-ConvertTo-VDF $config | Out-File $configPath
+ConvertTo-VDF $config | Out-File -Encoding UTF8 $configPath
 
 [System.Windows.MessageBox]::Show("Partage ajouté avec succès","Succès","OK","Info")

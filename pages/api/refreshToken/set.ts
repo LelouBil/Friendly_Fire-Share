@@ -1,10 +1,10 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getApiServerSession} from "@/lib/customSession";
 import {prisma} from "@/lib/db";
-import {RefreshTokenData} from "../../me";
 import {StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-internal";
 import {EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession} from "steam-session";
 import {invalidateSteamUser} from "@/lib/customSteamUser";
+import {RefreshTokenData} from "@/pages/api/refreshToken/getData";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     steam_session.on("error", e => {
       reject(e);
     });
-    await steam_session._processStartSessionResponse();
+    await steam_session._doPoll();
   });
 
   await prisma.user.update({

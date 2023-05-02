@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getApiServerSession} from "@/lib/customSession";
 import {prisma} from "@/lib/db";
-import withSteamUser, {SteamUserErrors} from "@/lib/customSteamUser";
+import withSteamUser, {invalidateSteamUser, SteamUserErrors} from "@/lib/customSteamUser";
 import {getDeviceName} from "./getDeviceName";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const lender = req.body.lender;
 
-  const userWithLender = await prisma.user.findUnique({
+  const currentUserWithLendingUser = await prisma.user.findUnique({
     where: {
       id: session.user.steam_id
     },
@@ -33,7 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
 
-  if (userWithLender === null) {
+
+  if (currentUserWithLendingUser === null) {
     return res.status(403).send(`You are not allowed to borrow from ${lender}`);
   }
 
@@ -42,7 +43,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).send(`You don't have a valid machineId`);
   }
 
-  if (userWithLender.MachineId === null) {
+
+  const currentUser = currentUserWithLendingUser;
+  const lendingUser = currentUserWithLendingUser.BorrowsFrom[0];
+
+  if (currentUser.MachineId === null) {
     return machineIdError();
   }
 
@@ -50,15 +55,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).send(`${lender} did not log in with qr code or it has expired`);
   }
 
-  if (userWithLender.BorrowsFrom[0].RefreshToken === null) {
+  if (lendingUser.RefreshToken === null) {
     return refreshTokenError();
   }
 
-  const refreshToken = userWithLender.BorrowsFrom[0].RefreshToken;
-
-
   try {
-    return await withSteamUser(refreshToken, lender, userWithLender.MachineId,
+    //obligé pour le machineId
+    await invalidateSteamUser(lendingUser.id);
+    return await withSteamUser(lendingUser.RefreshToken, lendingUser.id, currentUser.MachineId,
       async (steamUser) => {
         console.log("ASKSHARE - Created steam user");
         const currentBorrowers = await steamUser.getAuthorizedBorrowers();
@@ -93,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           removeable.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
           console.log(removeable);
-          if (process.env.REMOVE_OLD_ENABLED == "yes" && removeable.length > 0) {
+          if (process.env.REMOVE_OLD_ENABLED == "yes" && removeable.length > 0 && currentBorrowers.borrowers.length < 5) {
             const removeSteamId = removeable[0][0];
             await steamUser.removeAuthorizedBorrowers([]);
             const deviceName = getDeviceName(removeSteamId);
@@ -109,17 +113,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           } else
             return res.status(409).send(`${lender} already has maximum people shared !`);
         }
-        await steamUser.addAuthorizedBorrowers(userWithLender.id);
+        await steamUser.addAuthorizedBorrowers(currentUserWithLendingUser.id);
         console.log("ASKSHARE - Added user as authorized borrower");
         const newVar = await steamUser.getAuthorizedSharingDevices();
         let authorization: string;
-        let found = newVar.devices.find(d => d.deviceName === getDeviceName(userWithLender.id))?.deviceToken;
-        if (!found)
-          authorization = (await steamUser.authorizeLocalSharingDevice(getDeviceName(userWithLender.id))).deviceToken;
+        let found = newVar.devices.find(d => d.deviceName === getDeviceName(currentUserWithLendingUser.id))?.deviceToken;
+        if (!found) {
+          console.log("Authorizing new device")
+          authorization = (await steamUser.authorizeLocalSharingDevice(getDeviceName(currentUserWithLendingUser.id))).deviceToken;
+        }
         else
           authorization = found;
-
-        res.status(200).send(authorization);
+        res.status(200).send({token: authorization});
       });
   } catch (e) {
     console.error(e);

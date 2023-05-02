@@ -2099,7 +2099,7 @@ path-exists@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
   integrity sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==
 
-permessage-deflate@^0.1.6:
+permessage-deflate@^0.1.6, permessage-deflate@^0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/permessage-deflate/-/permessage-deflate-0.1.7.tgz#77bdce887ae3f576d8b2b8776b92b6af2c9d6cd6"
   integrity sha512-EUNi/RIsyJ1P1u9QHFwMOUWMYetqlE22ZgGbad7YP856WF4BFF0B7DuNy6vEGsgNNud6c/SkdWzkne71hH8MjA==
@@ -2278,6 +2278,11 @@ set-blocking@^2.0.0:
   resolved "https://registry.yarnpkg.com/set-blocking/-/set-blocking-2.0.0.tgz#045f9782d011ae9a6803ddd382b24392b3d890f7"
   integrity sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==
 
+simple-vdf@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/simple-vdf/-/simple-vdf-1.1.1.tgz#07e2c4dec06cf614ed6f4211b18cce123c93fca9"
+  integrity sha512-IHz5fiOyWX0etTzlrzpWfKWxkwOhSwbbuZxcig+JuON0id1clnYlINBRbe4M4Pz4VnNvNvNaZiKiS7tdIYyF6g==
+
 smart-buffer@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
@@ -2352,10 +2357,10 @@ steam-totp@^2.0.1:
   resolved "https://registry.yarnpkg.com/steam-totp/-/steam-totp-2.1.2.tgz#ab03eea28e40dedddde3041468dc8551055d84cc"
   integrity sha512-bTKlc/NoIUQId+my+O556s55DDsNNXfVIPWFDNVu68beql7AJhV0c+GTjFxfwCDYfdc4NkAme+0WrDdnY2D2VA==
 
-steam-user@^4.26.1:
-  version "4.28.0"
-  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-4.28.0.tgz#47407f495e613d3baede9d60c88a1bbe70f1bd6a"
-  integrity sha512-TajS+/XcDAnpoQXsus9hPr8fPxsN65StmiEMcVP2iDakw22tu4SmqsWE9glXKCBCfoRJcFyl5ltgGa2+BRnawg==
+steam-user@^4.28.3:
+  version "4.28.3"
+  resolved "https://registry.yarnpkg.com/steam-user/-/steam-user-4.28.3.tgz#62b9be9377ac3adf0c5c6dc719c209cfa7185b84"
+  integrity sha512-FoWgqqhN8+mXcNCXMe9OslQpTfIj4x+bmbyNkX6WDMq1OEBQPPNfPvsVDTJIdDbwKT7Lwa3894B982MkXXqtKQ==
   dependencies:
     "@bbob/parser" "^2.2.0"
     "@doctormckay/stdlib" "^1.15.1"
@@ -2367,13 +2372,13 @@ steam-user@^4.26.1:
     file-manager "^2.0.0"
     lzma "^2.3.2"
     protobufjs "^6.11.3"
+    simple-vdf "^1.1.1"
     socks-proxy-agent "^7.0.0"
     steam-appticket "^1.0.1"
     steam-session "^1.1.0"
     steam-totp "^2.0.1"
     steamid "^1.1.0"
-    vdf "^0.0.2"
-    websocket13 "^2.1.3"
+    websocket13 "^3.0.1"
 
 steamid@^1.1.0:
   version "1.1.3"
@@ -2436,6 +2441,11 @@ supports-color@^7.1.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
+
+tiny-typed-emitter@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/tiny-typed-emitter/-/tiny-typed-emitter-2.1.0.tgz#b3b027fdd389ff81a152c8e847ee2f5be9fad7b5"
+  integrity sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
@@ -2505,12 +2515,12 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz#2d4daab8451fd4b240cc27055ff6a0c2ccea0cde"
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
-websocket-extensions@^0.1.2:
+websocket-extensions@^0.1.2, websocket-extensions@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.4.tgz#7f8473bc839dfd87608adb95d7eb075211578a42"
   integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
 
-websocket13@^2.1.3, websocket13@^2.2.0:
+websocket13@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/websocket13/-/websocket13-2.2.0.tgz#5a0b3de1437455de322682b93ebb4e4dd8ad09d1"
   integrity sha512-m3aS0sLEM9dRM2+Cvgakdr/oLqyfAObdUlUqU3gdw3PuI81k1Hw3PWdwJsehvRRlScHolA13yYsx/X3OUzsTLA==
@@ -2519,6 +2529,17 @@ websocket13@^2.1.3, websocket13@^2.2.0:
     bytebuffer "^5.0.1"
     permessage-deflate "^0.1.6"
     websocket-extensions "^0.1.2"
+
+websocket13@^3.0.1:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/websocket13/-/websocket13-3.0.2.tgz#4d2a64fb8c7c0bc87232a6fb48f239d769fe7990"
+  integrity sha512-OgzxBXT9eQ0eEapeK2OKFlgKpegQnjMweHLUwGmfJhm+IbgpZ+NPT2eAEP1UUUjBslbmKpZ47rFU6Dp6agfyGQ==
+  dependencies:
+    "@doctormckay/stdlib" "^1.8.0"
+    bytebuffer "^5.0.1"
+    permessage-deflate "^0.1.7"
+    tiny-typed-emitter "^2.1.0"
+    websocket-extensions "^0.1.4"
 
 whatwg-url@^5.0.0:
   version "5.0.0"

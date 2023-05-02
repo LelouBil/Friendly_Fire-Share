@@ -29,7 +29,7 @@ class CacheManager {
 
     constructor() {
         const cache_check_hours: number = process.env.USER_CACHE_CHECK_HOURS === undefined ? 10 : parseInt(process.env.USER_CACHE_CHECK_HOURS);
-        const max_cache_hours: number = process.env.USER_CACHE_MAX_CACHE_HOURS === undefined ? 10 : parseInt(process.env.USER_CACHE_MAX_CACHE_HOURS);
+        const max_cache_hours: number = process.env.USER_CACHE_MAX_CACHE_HOURS === undefined ? 24 : parseInt(process.env.USER_CACHE_MAX_CACHE_HOURS);
         setInterval(() => {
             this.Cache.forEach(
                 (v, k) => {
@@ -38,7 +38,7 @@ class CacheManager {
                         return;
                     }
                     const number = (new Date().getTime() - v.lastUse.getTime()) / (1000 * 60 * 60);
-                    if (number > (process.env.USER_CACHE_MAX_CACHE_HOURS || 24) ) {
+                    if (number > max_cache_hours ) {
                         SteamUserCacheManager.Cache.delete(k);
                         v.user.logOff();
                         console.info(`Logged off user ${v.steam_id}`);
@@ -88,6 +88,7 @@ class CacheManager {
             console.info(`Invalidating uncached user ${steam_id}`);
             return;
         }
+        this.Cache.get(steam_id)?.user.logOff();
         this.Cache.delete(steam_id);
     }
 }
@@ -142,7 +143,7 @@ async function createSteamUser(refresh_token: string, steam_id: string, machine_
     }
 
     return new Promise<[SteamUser, ReleaseMethod]>((resolve, reject) => {
-        user.on("loggedOn", async (args) => {
+        user.on("loggedOn", async () => {
             console.log("logged in, checking steamId");
             if (steamId.toString() !== user.steamID?.toString()) {
                 await removeToken(steam_id);
