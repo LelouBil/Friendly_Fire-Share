@@ -530,11 +530,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
             return {name: fs.personaname, steam_id: fs.steamid};
         });
 
+
+
         const perLenderData: {
             [k: string]: { deviceToken: string | null, borrowerInCurrentShareList: boolean }
-        } = await server_user.BorrowsFrom.reduce(async (accum, bf) => {
-            if (bf.RefreshToken !== null) {
-                const [devices, borrowers] = await withSteamUser(bf.RefreshToken, bf.id, null, async (usr) => {
+        } = {};
+
+        for (let lender of server_user.BorrowsFrom) {
+            if (lender.RefreshToken !== null) {
+                const [devices, borrowers] = await withSteamUser(lender.RefreshToken, lender.id, null, async (usr) => {
                     return [await usr.getAuthorizedSharingDevices(), await usr.getAuthorizedBorrowers()];
                 });
 
@@ -544,12 +548,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
                 const borrowerInCurrentShareList = borrowers
                     .borrowers.some(authborws => authborws.steamid.toString() == server_user.id);
                 if (found !== undefined) {
-                    return {...accum, [bf.id]: {deviceToken: found.deviceToken, borrowerInCurrentShareList}};
-                } else return {...accum, [bf.id]: {deviceToken: null, borrowerInCurrentShareList: false}};
+
+                    perLenderData[lender.id] = {deviceToken: found.deviceToken, borrowerInCurrentShareList};
+                } else perLenderData[lender.id] = {deviceToken: null, borrowerInCurrentShareList: false};
             } else {
-                return {...accum, [bf.id]: {deviceToken: null, borrowerInCurrentShareList: false}};
+                perLenderData[lender.id] = {deviceToken: null, borrowerInCurrentShareList: false};
             }
-        }, {});
+        }
 
 
         lenders = server_user.BorrowsFrom.map(lender => {
