@@ -1,11 +1,12 @@
 @echo off
 Rem Make powershell read this file, skip a number of lines, and execute it.
 Rem This works around .ps1 bad file association as non executables.
-PowerShell -Command "Get-Content '%~dpnx0' | Select-Object -Skip 5 | Out-String | Invoke-Expression"
+PowerShell -Command "Get-Content -Encoding UTF8 '%~dpnx0' | Select-Object -Skip 5 | Out-String | Invoke-Expression"
 goto :eof
 # Start of PowerShell script here
-
-Write-Host "Starting..." -ForegroundColor DarkCyan
+$ErrorActionPreference = "Stop"
+Write-Host "Lancement du programme..." -ForegroundColor DarkCyan
+Write-Host "Celui-ci peut prendre quelques secondes" -ForegroundColor DarkCyan
 
 $sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider
 
@@ -16,7 +17,7 @@ $hashBytes = $sha1.ComputeHash($guidBytes)
 
 $bb3_hash = -Join ($hashBytes | ForEach-Object {$_.ToString("x2")})
 
-Write-Host "1/3 Done..." -ForegroundColor Green
+Write-Host "1/3 Effectué..." -ForegroundColor Green
 
 # FF2 → Two MAC addresses in a 16 bytes array. Each address have 2 zeroes added at the end
 # Find the first two physical network adapter
@@ -43,7 +44,7 @@ if (!($adapters -is [array])) {
 $hash = $sha1.ComputeHash($bytes)
 $ff2_hash = -Join ($hash | ForEach-Object {$_.ToString("x2")})
 
-Write-Host "2/3 Done..." -ForegroundColor Green
+Write-Host "2/3 Effectué..." -ForegroundColor Green
 
 # 3B3 → Boot disk serial number
 $serial_number = (get-partition -DriveLetter C | get-disk).SerialNumber
@@ -52,7 +53,7 @@ $hashBytes = $sha1.ComputeHash($snBytes)
 
 $3b3_hash = -Join ($hashBytes | ForEach-Object {$_.ToString("x2")})
 
-Write-Host "3/3 Done..." -ForegroundColor Green
+Write-Host "3/3 Effectué..." -ForegroundColor Green
 
 # Create the base64 final string
 $bytes = [byte[]]@()
@@ -82,7 +83,7 @@ $base64 = -Join ($bytes | ForEach-Object {$_.ToString("X2")})
 Set-Clipboard -Value $base64
 Write-Output ""
 Write-Host $base64 -ForegroundColor Blue
-Write-Host "The value has been saved in your clipboard" -ForegroundColor DarkGreen
+Write-Host "Votre machineID a été copié dans votre presse-papier" -ForegroundColor DarkGreen
 Write-Output ""
 
 pause

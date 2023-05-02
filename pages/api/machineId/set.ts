@@ -9,7 +9,6 @@ import {invalidateSteamUser} from "@/lib/customSteamUser";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getApiServerSession(req, res);
 
-
   if (!req.body.machine_id || typeof req.body.machine_id !== "string") {
     return res.status(400).send("Bad request, missing machine_id");
   }
@@ -27,5 +26,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   await invalidateSteamUser(session.user.steam_id);
   console.log(`Updated machine_id of user ${session.user.name}`);
-  return res.status(200);
+  res.status(200).end()
 }

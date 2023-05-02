@@ -18,7 +18,7 @@
   },
   "shares": {
     "list": {
-      "tableName": "Utilisateurs autorisés a emprunter",
+      "tableName": "Utilisateurs autorisés à emprunter vos jeux",
       "columns": {
         "name": "Nom",
         "computer": "Ordinateur",
@@ -42,5 +42,19 @@
     "machineId": "Machine ID",
     "refreshToken": "Refresh Token",
     "imageAlt": "Votre photo de profil Steam"
+  },
+  "connection": {
+    "step1": {
+      "title": "Entre ton machine ID",
+      "tooltip": "Le machine ID est l'identifiant de ton ordinateur. Il est utilisé par Steam pour les partages",
+      "placeholder": "Coller ici",
+      "button": "Valider",
+      "a": "Avoir mon machine ID"
+    },
+    "step2": {
+      "title": "Scanne le QR-Code avec l'application Steam et appuie sur \"Se Connecter\"",
+      "button": "J'ai scanné",
+      "error": "Dommage, c'était pas le bon bouton. 1 chance sur 2. Réessaye"
+    }
   }
 }
