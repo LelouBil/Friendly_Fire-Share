@@ -179,7 +179,7 @@ if ($pscount -gt 0 ){
 $steamid = "%STEAM_ID%"
 $deviceName = "%DEVICE_NAME%"
 $deviceToken = "%DEVICE_TOKEN%"
-echo "éééééé"
+
 $configPath = Join-Path (Get-SteamPath) "config/config.vdf"
 $configBackupPath = Join-Path (Get-SteamPath) "config/config.vdf.bak"
 
