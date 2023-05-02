@@ -1,20 +1,7 @@
 import styles from '@/styles/Me.module.css';
 import Head from "next/head";
 import React, {FormEventHandler, useCallback, useEffect, useState} from "react";
-import {
-    Badge,
-    Button,
-    Card,
-    Dropdown,
-    Grid,
-    Input,
-    Link,
-    Loading,
-    Modal,
-    Table,
-    Text,
-    Tooltip
-} from "@nextui-org/react";
+import {Button, Card, Dropdown, Grid, Input, Link, Loading, Modal, Table, Text} from "@nextui-org/react";
 import {useSession} from "next-auth/react";
 import {GetServerSidePropsContext, GetServerSidePropsResult} from "next";
 import {Session} from "next-auth";
@@ -29,7 +16,7 @@ import {getSharesOfUser, ShareArray} from "@/lib/getSharesOfUser";
 import SteamID from "steamid";
 import {RemoveBorrowerBody} from "@/pages/api/shares/remove";
 import {serverSideTranslations} from 'next-i18next/serverSideTranslations';
-import {SSRConfig, useTranslation} from "next-i18next";
+import {SSRConfig, Trans, useTranslation} from "next-i18next";
 import {RefreshTokenData} from "@/pages/api/refreshToken/getData";
 
 
@@ -158,6 +145,11 @@ function SetNewMachineId({setValid}: { setValid: (valid: boolean) => void }) {
     return (
         <div>
             <Text h2>{t("connection.step1.title")}</Text>
+            <Text blockquote>
+                <Trans i18nKey={"connection.step1.description"} components={{
+                    machineIdLink: <Link style={{height: "100%", display: "inline-block"}} href="/machineID.bat"/>
+                }}></Trans>
+            </Text>
             <form onSubmit={submitMachineId} className={styles.machineIdForm}>
                 <Grid.Container gap={2}>
                     <Grid>
@@ -165,23 +157,13 @@ function SetNewMachineId({setValid}: { setValid: (valid: boolean) => void }) {
                                placeholder={t("connection.step1.placeholder")!}
                                aria-label={t("connection.step1.placeholder")!}
                                color={hasFailed ? "error" : "default"}
-                               disabled={isLoading} required bordered onChange={e => setMachineId(e.target.value)}
-                               contentRightStyling={false}
-                               contentRight={
-                                   <Tooltip content={t("connection.step1.tooltip")}>
-                                       <Badge color="secondary"
-                                              style={{aspectRatio: "1.9", padding: "5px", marginRight: "5px"}}>i</Badge>
-                                   </Tooltip>
-                               }/>
+                               disabled={isLoading} required bordered onChange={e => setMachineId(e.target.value)}/>
                     </Grid>
                     <Grid>
                         <Button auto type="submit" disabled={isLoading || machineId.length !== 310}
                                 iconRight={isLoading && <Loading size={"xs"}/>}>
                             {t("connection.step1.button")}
                         </Button>
-                    </Grid>
-                    <Grid>
-                        <Link style={{height: "100%"}} href="/machineID.bat">{t("connection.step1.a")}</Link>
                     </Grid>
                 </Grid.Container>
             </form>
@@ -217,7 +199,7 @@ function SetRefreshToken({setValid}: { setValid: (isValid: boolean) => void }) {
 
         const interval = setInterval(() => {
             refreshQR();
-        }, 29*1000);
+        }, 29 * 1000);
 
         return () => clearInterval(interval);
     }, [])
@@ -524,10 +506,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
         //filter by db
 
         const registeredFriends = await prisma.user.findMany({
-            select:{
+            select: {
                 id: true
             },
-            where:{
+            where: {
                 id: {
                     in: friends.map(f => f.steamid)
                 }

@@ -46,10 +46,9 @@
   "connection": {
     "step1": {
       "title": "Entre ton machine ID",
-      "tooltip": "Le machine ID est l'identifiant de ton ordinateur. Il est utilisé par Steam pour les partages",
+      "description": "Le machine ID est un identifiant utilisé par Steam pour réconnaitre la machine d'un utilisateur.<br/>Celui-ci est composé de diverses informations relatives à la machine. Pour le récupérer, un programme est donc nécessaire.<br/><br/>Cliquez <machineIdLink>ici</machineIdLink>, exécutez le programme et collez le résultat dans le champ ci-dessous.<br/>Si Windows le bloque, cliquez sur \"informations supplémentaires\"",
       "placeholder": "Coller ici",
-      "button": "Valider",
-      "a": "Avoir mon machine ID"
+      "button": "Valider"
     },
     "step2": {
       "title": "Scanne le QR-Code avec l'application Steam et appuie sur \"Se Connecter\"",

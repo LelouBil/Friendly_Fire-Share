@@ -48,10 +48,12 @@ Write-Host "2/3 Effectué..." -ForegroundColor Green
 
 # 3B3 → Boot disk serial number
 $serial_number = (get-partition -DriveLetter C | get-disk).SerialNumber
-$snBytes = [System.Text.Encoding]::UTF8.GetBytes($serial_number)
-$hashBytes = $sha1.ComputeHash($snBytes)
+if($serial_number -ne $null){
+    $snBytes = [System.Text.Encoding]::UTF8.GetBytes($serial_number)
+    $hashBytes = $sha1.ComputeHash($snBytes)
+    $3b3_hash = -Join ($hashBytes | ForEach-Object {$_.ToString("x2")})
+}
 
-$3b3_hash = -Join ($hashBytes | ForEach-Object {$_.ToString("x2")})
 
 Write-Host "3/3 Effectué..." -ForegroundColor Green
 
@@ -69,11 +71,13 @@ $bytes += 0x01
 $bytes += [System.Text.Encoding]::UTF8.GetBytes("FF2")
 $bytes += 0x00
 $bytes += [System.Text.Encoding]::UTF8.GetBytes($ff2_hash)
-$bytes += 0x00
-$bytes += 0x01
-$bytes += [System.Text.Encoding]::UTF8.GetBytes("3B3")
-$bytes += 0x00
-$bytes += [System.Text.Encoding]::UTF8.GetBytes($3b3_hash)
+if($3b3_hash -ne $null){
+    $bytes += 0x00
+    $bytes += 0x01
+    $bytes += [System.Text.Encoding]::UTF8.GetBytes("3B3")
+    $bytes += 0x00
+    $bytes += [System.Text.Encoding]::UTF8.GetBytes($3b3_hash)
+}
 $bytes += 0x00
 $bytes += 0x08
 $bytes += 0x08

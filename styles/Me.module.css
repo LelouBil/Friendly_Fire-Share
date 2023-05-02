@@ -8,8 +8,8 @@
 .userContainer {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    height: fit-content;
 }
 
 .tableContainer {
