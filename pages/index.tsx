@@ -197,7 +197,6 @@ function SetRefreshToken({setValid}: { setValid: (isValid: boolean) => void }) {
 
     useEffect(() => {
         refreshQR();
-
         const interval = setInterval(() => {
             refreshQR();
         }, 29 * 1000);
