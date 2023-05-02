@@ -17,9 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!check_machine_id(Buffer.from(req.body.machine_id, "hex"))) {
     return res.status(400).send("Bad request, machine_id invalid");
   }
-
-
-  const newId = await prisma.user.update({
+  await prisma.user.update({
     where: {
       id: session.user.steam_id
     },
