@@ -46,7 +46,7 @@
   "connection": {
     "step1": {
       "title": "Entre ton machine ID",
-      "description": "Le machine ID est un identifiant utilisé par Steam pour réconnaitre la machine d'un utilisateur.<br/>Celui-ci est composé de diverses informations relatives à la machine. Pour le récupérer, un programme est donc nécessaire.<br/><br/>Cliquez <machineIdLink>ici</machineIdLink>, exécutez le programme et collez le résultat dans le champ ci-dessous.<br/>Si Windows le bloque, cliquez sur \"informations supplémentaires\"",
+      "description": "Le machine ID est un identifiant utilisé par Steam pour reconnaitre la machine d'un utilisateur.<br/>Celui-ci est composé de diverses informations relatives à la machine. Pour le récupérer, un programme est donc nécessaire.<br/><br/><machineIdLink>Cliquez ici</machineIdLink>, exécutez le programme et collez le résultat dans le champ ci-dessous.<br/>Si Windows le bloque, cliquez sur \"informations supplémentaires\"",
       "placeholder": "Coller ici",
       "button": "Valider"
     },

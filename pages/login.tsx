@@ -4,26 +4,35 @@ import {Button, Loading} from "@nextui-org/react";
 import {signIn} from "next-auth/react";
 import {GetServerSidePropsContext} from "next";
 import {useRouter} from "next/router";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {getServerSession} from "@/lib/customSession";
+import {serverSideTranslations} from "next-i18next/serverSideTranslations";
+import {useTranslation} from 'react-i18next';
 
 
 export default function Login() {
-  let router = useRouter();
-  let error = router.query.error;
-  let callbackUrl: string = router.query.callbackUrl as (string | undefined) || "/me";
-  if (error) {
+  const router = useRouter();
+  const callbackUrl: string = router.query.callbackUrl as (string | undefined) || "/";
+
+  const {t} = useTranslation("login");
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (router.query.error) {
     return (
       <div className={styles.container}>
         <Head>
-          <title>Login - Friendly Fire-Share</title>
+          <title>{t("pageName")}</title>
         </Head>
         <main className={styles.main}>
-          <h1 className={styles.title}>
-            Login on Steam
-          </h1>
-          <p>Something went wrong, please try again</p>
-          <Button onPress={() => signIn("steam", {callbackUrl})}>Click me</Button>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <p>{t("error.message")}</p>
+          <Button disabled={isLoading} onPress={() => {
+            setIsLoading(true);
+            signIn("steam", {callbackUrl}).then(() => {
+              setIsLoading(false);
+            });
+          }}>{!isLoading ? `${t("error.button")}` : <Loading size={"sm"}/>}</Button>
         </main>
       </div>
     );
@@ -32,7 +41,18 @@ export default function Login() {
       // noinspection JSIgnoredPromiseFromCall
       signIn("steam", {callbackUrl});
     });
-    return <Loading size="xl">Loading</Loading>;
+
+    return (
+      <div className={styles.container}>
+        <Head>
+          <title>{t("pageName")}</title>
+        </Head>
+        <main className={styles.main}>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <Loading size="xl">{t("loading")}</Loading>
+        </main>
+      </div>
+    );
   }
 }
 
@@ -45,9 +65,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       redirect: {
         permanent: false,
-        destination: context.query.callbackUrl || "/me"
+        destination: context.query.callbackUrl || "/"
+      },
+      props: {
+        ...(await serverSideTranslations(context.locale || context.defaultLocale!))
       }
     };
   }
-  return {props: {}};
+  return {
+    props: {
+      ...(await serverSideTranslations(context.locale || context.defaultLocale!))
+    }
+  };
 }

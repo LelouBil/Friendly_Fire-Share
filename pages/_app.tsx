@@ -14,16 +14,9 @@ export default appWithTranslation(function App({Component, pageProps: {session, 
 
   const darkTheme = createTheme({
     type: 'dark'
-    // theme: {
-    //     colors: {
-    //         background: '#1d1d1d',
-    //         text: '#d52121'
-    //     }
-    // }
   });
 
   return (
-
     <NextThemesProvider defaultTheme="system" attribute="class" value={{light: lightTheme, dark: darkTheme}}>
       <NextUIProvider>
         <SessionProvider session={session}>
@@ -34,6 +27,5 @@ export default appWithTranslation(function App({Component, pageProps: {session, 
         </SessionProvider>
       </NextUIProvider>
     </NextThemesProvider>
-
   );
 });

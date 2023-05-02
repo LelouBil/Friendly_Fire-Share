@@ -1,12 +1,11 @@
 {
   "name": "friendly_fire-share",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "npx prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
     "prod": "npx prisma migrate deploy && node server.js"
   },
   "dependencies": {

@@ -12,10 +12,11 @@ class MyDocument extends Document {
   }
 
   render() {
-    // noinspection HtmlRequiredTitleElement
     return (
-      <Html lang="en">
+      <Html lang="fr">
         <Head>
+          <meta name="description" lang={"fr"} content="Gratte les jeux de tes potes en quelques secondes !"/>
+          <link rel="icon" type="image/svg" href="/favicon.svg"/>
           {CssBaseline.flush()}
         </Head>
         <body>

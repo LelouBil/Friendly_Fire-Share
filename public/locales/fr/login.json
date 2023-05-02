@@ -1,0 +1,9 @@
+{
+  "pageName": "Connexion - Friendly Fire-Share",
+  "title": "Connexion à Steam",
+  "error": {
+    "message": "Une erreur est survenue, veuillez réessayer",
+    "button": "Cliquez ici pour réessayer"
+  },
+  "loading": "Chargement..."
+}
