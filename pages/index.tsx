@@ -158,14 +158,14 @@ function SetNewMachineId({setValid}: { setValid: (valid: boolean) => void }) {
       <form onSubmit={submitMachineId} className={styles.machineIdForm}>
         <Grid.Container gap={2}>
           <Grid>
-            <Input id="machine_id" style={{width: "100%"}} maxLength={310} minLength={310}
+            <Input id="machine_id" style={{width: "100%"}} maxLength={310} minLength={218}
                    placeholder={t("connection.step1.placeholder")!}
                    aria-label={t("connection.step1.placeholder")!}
                    color={hasFailed ? "error" : "default"}
                    disabled={isLoading} required bordered onChange={e => setMachineId(e.target.value)}/>
           </Grid>
           <Grid>
-            <Button auto type="submit" color={"success"} disabled={isLoading || machineId.length !== 310}
+            <Button auto type="submit" color={"success"} disabled={isLoading || machineId.length !== 310 && machineId.length !== 218}
                     iconRight={isLoading && <Loading size={"xs"}/>}>
               {t("connection.step1.button")}
             </Button>
