@@ -3,6 +3,14 @@ import {getApiServerSession} from "@/lib/customSession";
 import {prisma} from "@/lib/db";
 import withSteamUser, {invalidateSteamUser, SteamUserErrors} from "@/lib/customSteamUser";
 import {getDeviceName} from "./getDeviceName";
+import {Mutex} from "async-mutex";
+
+const globalWithMutexMap = global as unknown as { mutexMap: Map<string,Mutex> };
+
+const mutexMap = globalWithMutexMap.mutexMap || new Map<string,Mutex>()
+if (process.env.NODE_ENV !== 'production') {
+  globalWithMutexMap.mutexMap = mutexMap
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getApiServerSession(req, res);
@@ -59,6 +67,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return refreshTokenError();
   }
 
+  if(!mutexMap.has(lendingUser.id)){
+    mutexMap.set(lendingUser.id,new Mutex())
+  }
+  const lenderMutex = mutexMap.get(lendingUser.id)!;
+
+  const releaseMutex = await lenderMutex.acquire();
+
   try {
     //obligé pour le machineId
     await invalidateSteamUser(lendingUser.id);
@@ -111,6 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               await steamUser.deauthorizeSharingDevice(filtered[0].deviceToken);
             }
           } else
+            releaseMutex()
             return res.status(409).send(`${lender} already has maximum people shared !`);
         }
         await steamUser.addAuthorizedBorrowers(currentUserWithLendingUser.id);
@@ -124,9 +140,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         else
           authorization = found;
-        res.status(200).send({token: authorization});
+        releaseMutex()
+        return res.status(200).send({token: authorization});
       });
   } catch (e) {
+    releaseMutex()
     console.error(e);
     if (e === SteamUserErrors.RefreshTokenInvalid) {
       return refreshTokenError();
