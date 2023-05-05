@@ -445,7 +445,7 @@ export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
           <Table.Column>{t("lend.list.columns.getShare")}</Table.Column>
         </Table.Header>
         <Table.Body>
-          {lends.map(lend => (
+          {lends.sort((a,b) => parseInt(a.steamId) - parseInt(b.steamId)).map(lend => (
             <Table.Row key={lend.steamId}>
               <Table.Cell>{lend.name}</Table.Cell>
               <Table.Cell>
