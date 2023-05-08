@@ -94,26 +94,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     for (let borrower of currentBorrowers.borrowers) {
                         console.log(`Looking ${borrower.steamid}`);
 
-                        const playingAppId: number = await new Promise((resolve, reject) => {
-                            const timeout = setTimeout(() => {
-                                steamUser.setPersona(EPersonaState.Offline);
-                                reject("Request time out for checking playing status");
-                            },5000)
-
-                            steamUser.on("user", (sid, user) => {
-                                if (sid.toString() === borrower.steamid.toString() && user.game_played_app_id != null) {
-                                    resolve(user.game_played_app_id)
-                                    steamUser.setPersona(EPersonaState.Offline);
-                                    clearTimeout(timeout)
-                                }
-                            })
-                            steamUser.setPersona(EPersonaState.Invisible);
-                            steamUser.getPersonas([borrower.steamid])
-                        })
-
-                        if(playingAppId != 0){
-                            continue
-                        }
 
 
                         const time_diff = (new Date().getTime() - borrower.timeCreated.getTime()) / (1000 * 60 * 60);
@@ -121,17 +101,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         if (time_diff < min_share_hours) {
                             continue;
                         }
+
+                        let playingAppId = 1;
+                        try {
+                            playingAppId = await new Promise((resolve, reject) => {
+                                const timeout = setTimeout(() => {
+                                    steamUser.setPersona(EPersonaState.Offline);
+                                    reject("Request time out for checking playing status");
+                                }, 5000)
+
+                                steamUser.on("user", (sid, user) => {
+                                    if (sid.toString() === borrower.steamid.toString() && user.game_played_app_id != null) {
+                                        resolve(user.game_played_app_id)
+                                        steamUser.setPersona(EPersonaState.Offline);
+                                        clearTimeout(timeout)
+                                    }
+                                })
+                                steamUser.setPersona(EPersonaState.Invisible);
+                                steamUser.getPersonas([borrower.steamid])
+                            })
+                        } catch (e) {
+                            console.log(e)
+                            console.log("Assuming player is offline")
+                        }
+
+                        if(playingAppId != 0){
+                            continue
+                        }
+
+
                         let device = newVar.devices.find(d => d.deviceName === getDeviceName(borrower.steamid.toString()));
                         console.log(`device: ${JSON.stringify(device)}`);
                         if (device === undefined || device.lastTimeUsed === null) {
                             removeable.push([borrower.steamid.toString(), borrower.timeCreated.getTime()]);
                             continue;
                         }
+
                         const last_use_diff = (new Date().getTime() - device.lastTimeUsed.getTime()) / (1000 * 60 * 60);
                         console.log(`time diff: ${last_use_diff}`);
                         if (last_use_diff > min_last_use_hours) {
                             removeable.push([borrower.steamid.toString(), borrower.timeCreated.getTime()]);
                         }
+
                     }
                     removeable.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
                     console.log(removeable);
