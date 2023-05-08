@@ -102,8 +102,8 @@ export default function Index({sharesProp, machine_id_valid, lendersProp, refres
           {
             machineIdValid && refreshTokenValid ?
               <>
-                <LendTable lenders={lendersProp} canGet={machineIdValid}
-                           borrowerSteamId={session.user.steam_id}/>
+                <RequestTable lenders={lendersProp} canGet={machineIdValid}
+                              borrowerSteamId={session.user.steam_id}/>
                 <ShareTable sharesProp={sharesProp} friendList={friendIdList}/>
               </> :
               <>
@@ -366,7 +366,7 @@ type LendTableProps = { lenders: LendInfo[], canGet: boolean, borrowerSteamId: s
 
 type ModalData = { error: number, title: string, content: string }
 
-export function LendTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
+export function RequestTable({lenders, canGet, borrowerSteamId}: LendTableProps) {
   const {t} = useTranslation();
 
   const [lends, setLends] = useState<LendInfo[]>(lenders);
