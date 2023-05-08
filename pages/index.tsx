@@ -532,7 +532,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext): Pr
     });
 
 
-    const friend_summaries = await steam_web.getPlayersSummary(registeredFriends.map(rf => rf.id));
+    const friend_summaries = registeredFriends.length > 0 ? await steam_web.getPlayersSummary(registeredFriends.map(rf => rf.id)) : [];
     friends_with_names = friend_summaries.map(fs => {
       return {name: fs.personaname, steam_id: fs.steamid};
     });
