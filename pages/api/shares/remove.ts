@@ -3,6 +3,7 @@ import {getApiServerSession} from "@/lib/customSession";
 import withSteamUser, {SteamUserErrors} from "@/lib/customSteamUser";
 import {prisma} from "@/lib/db";
 import {getDeviceName} from "../getDeviceName";
+import * as Sentry from "@sentry/nextjs";
 
 
 export type RemoveBorrowerBody = {
@@ -11,7 +12,10 @@ export type RemoveBorrowerBody = {
 }
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getApiServerSession(req, res);
-
+    Sentry.setUser({
+        id: session.user.steam_id,
+        username: session.user.name
+    })
 
     if (!req.body || typeof req.body !== "object") {
         return res.status(400).send("Missing body data");

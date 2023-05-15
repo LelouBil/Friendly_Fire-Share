@@ -4,11 +4,15 @@ import {prisma} from "@/lib/db";
 import {check_machine_id} from "@/lib/check_machine_id";
 import {Buffer} from "buffer/";
 import {invalidateSteamUser} from "@/lib/customSteamUser";
+import * as Sentry from "@sentry/nextjs"
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getApiServerSession(req, res);
-
+  Sentry.setUser({
+    id: session.user.steam_id,
+    username: session.user.name
+  })
   if (!req.body.machine_id || typeof req.body.machine_id !== "string") {
     return res.status(400).send("Bad request, missing machine_id");
   }

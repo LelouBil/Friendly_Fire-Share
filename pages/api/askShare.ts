@@ -5,6 +5,7 @@ import withSteamUser, {invalidateSteamUser, SteamUserErrors} from "@/lib/customS
 import {getDeviceName} from "./getDeviceName";
 import {Mutex} from "async-mutex";
 import {EPersonaState} from "steam-user";
+import * as Sentry from "@sentry/nextjs";
 
 const globalWithMutexMap = global as unknown as { mutexMap: Map<string, Mutex> };
 
@@ -15,7 +16,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getApiServerSession(req, res);
-
+    Sentry.setUser({
+        id: session.user.steam_id,
+        username: session.user.name
+    })
     if (req.body.lender === undefined || typeof (req.body.lender) !== "string") {
         return res.status(400).send("Missing lender property");
     }
@@ -82,6 +86,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 console.log("ASKSHARE - Created steam user");
                 const currentBorrowers = await steamUser.getAuthorizedBorrowers();
                 if (currentBorrowers.borrowers.length >= 4) {
+                    const transac = Sentry.startTransaction({
+                        name: `Trying to remove a borrower`,
+                        op:"remove_borrower",
+                        data:{
+                            user_wanting_to_borrow:session.user.steam_id,
+                            user_lending:lendingUser.id
+                        }
+                    })
                     console.info(`User ${steamUser.steamID} has max share, looking for remove`);
                     let removeable: [string, number][] = [];
 
@@ -145,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
                     }
                     removeable.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
-                    console.log(removeable);
+                    console.log(`Can remove ${removeable}`);
                     if (process.env.REMOVE_OLD_ENABLED == "yes" && removeable.length > 0 && currentBorrowers.borrowers.length < 5) {
                         const removeSteamId = removeable[0][0];
                         await steamUser.removeAuthorizedBorrowers([]);
@@ -157,11 +169,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         } else if (filtered.length > 1) {
                             console.error(`Multiple devices(${deviceName}) matched for user ${removeSteamId} while removing`);
                         } else {
+                            console.log(`Removing ${filtered[0]}`)
                             await steamUser.deauthorizeSharingDevice(filtered[0].deviceToken);
                         }
-                    } else
+                    } else {
                         releaseMutex()
-                    return res.status(409).send(`${lender} already has maximum people shared !`);
+                        return res.status(409).send(`${lender} already has maximum people shared !`);
+                    }
+                    transac.finish()
                 }
                 await steamUser.addAuthorizedBorrowers(currentUserWithLendingUser.id);
                 console.log("ASKSHARE - Added user as authorized borrower");

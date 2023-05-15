@@ -3,6 +3,7 @@ import {EAuthTokenPlatformType, LoginSession} from "steam-session";
 import {AllowedConfirmation, StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-internal";
 import {getApiServerSession} from "@/lib/customSession";
 import {prisma} from "@/lib/db";
+import * as Sentry from "@sentry/nextjs";
 
 export type RefreshTokenData = {
     clientId: string;
@@ -15,6 +16,10 @@ export type RefreshTokenData = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getApiServerSession(req, res);
+    Sentry.setUser({
+        id: session.user.steam_id,
+        username: session.user.name
+    })
 
     const server_user = await prisma.user
         .findUniqueOrThrow({

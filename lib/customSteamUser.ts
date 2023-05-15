@@ -5,6 +5,7 @@ import {EResult} from "steam-session";
 import {Buffer} from "buffer/";
 import {check_machine_id} from "./check_machine_id";
 import {randomInt} from "crypto";
+import * as Sentry from "@sentry/nextjs"
 
 export enum SteamUserErrors {
     MachineIdInvalid,
@@ -136,7 +137,7 @@ async function createSteamUser(refresh_token: string, steam_id: string, machine_
         }
     }
 
-
+    Sentry.setTag("steamuser_user",steam_id)
     if (SteamUserCacheManager.has(steam_id)) {
         console.info(`Using cached steam user ${steam_id}`)
         return SteamUserCacheManager.get(steam_id) as [SteamUser, ReleaseMethod];

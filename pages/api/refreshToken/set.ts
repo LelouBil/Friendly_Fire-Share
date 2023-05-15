@@ -5,11 +5,15 @@ import {StartAuthSessionWithQrResponse} from "steam-session/dist/interfaces-inte
 import {EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession} from "steam-session";
 import {invalidateSteamUser} from "@/lib/customSteamUser";
 import {RefreshTokenData} from "@/pages/api/refreshToken/getData";
+import * as Sentry from "@sentry/nextjs";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getApiServerSession(req, res);
-
+  Sentry.setUser({
+    id: session.user.steam_id,
+    username: session.user.name
+  })
   if (!req.body.refresh_token_data || typeof req.body.refresh_token_data !== "object") {
     return res.status(400).send("Bad request, missing refresh_token_data");
   }

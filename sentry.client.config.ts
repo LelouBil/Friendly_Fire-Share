@@ -21,6 +21,10 @@ Sentry.init({
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
   integrations: [
     new Sentry.Replay({
+      networkDetailAllowUrls: ["https://friendly-fireshare.leloubil.net"],
+      blockAllMedia: false,
+      maskAllText: false,
+      maskAllInputs: false,
     }),
   ],
 });
