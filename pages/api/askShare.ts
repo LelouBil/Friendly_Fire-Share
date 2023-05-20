@@ -109,12 +109,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
                         const time_diff = (new Date().getTime() - borrower.timeCreated.getTime()) / (1000 * 60 * 60);
-                        console.log(`time diff: ${time_diff}`);
+                        console.log(`min share hour time diff: ${time_diff}`);
                         if (time_diff < min_share_hours) {
+                            console.log("In immunity")
                             continue;
                         }
 
-                        let playingAppId = 1;
+                        let playingAppId = null;
                         try {
                             playingAppId = await new Promise((resolve, reject) => {
                                 const timeout = setTimeout(() => {
@@ -137,7 +138,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                             console.log("Assuming player is offline")
                         }
 
+                        console.log(`Playing ${playingAppId}`)
+
                         if(playingAppId != 0){
+                            console.log("Immune")
                             continue
                         }
 
@@ -145,12 +149,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         let device = newVar.devices.find(d => d.deviceName === getDeviceName(borrower.steamid.toString()));
                         console.log(`device: ${JSON.stringify(device)}`);
                         if (device === undefined || device.lastTimeUsed === null) {
+                            console.log("No device or no time used")
                             removeable.push([borrower.steamid.toString(), borrower.timeCreated.getTime()]);
                             continue;
                         }
 
                         const last_use_diff = (new Date().getTime() - device.lastTimeUsed.getTime()) / (1000 * 60 * 60);
-                        console.log(`time diff: ${last_use_diff}`);
+                        console.log(`last use time diff: ${last_use_diff}`);
                         if (last_use_diff > min_last_use_hours) {
                             console.log(`Adding {${borrower.steamid}} to remove list`)
                             removeable.push([borrower.steamid.toString(), borrower.timeCreated.getTime()]);
