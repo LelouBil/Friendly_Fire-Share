@@ -165,9 +165,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const devices = await steamUser.getAuthorizedSharingDevices();
                         const filtered = devices.devices.filter(d => d.deviceName == deviceName);
                         if (filtered.length == 0) {
-                            console.error(`Could not find device(${deviceName}) of user ${removeSteamId} while removing`);
+                            console.log(`Could not find device(${deviceName}) of user ${removeSteamId} while removing`);
                         } else if (filtered.length > 1) {
-                            console.error(`Multiple devices(${deviceName}) matched for user ${removeSteamId} while removing`);
+                            console.log(`Multiple devices(${deviceName}) matched for user ${removeSteamId} while removing`);
                         } else {
                             console.log(`Removing ${filtered[0]}`)
                             await steamUser.deauthorizeSharingDevice(filtered[0].deviceToken);
