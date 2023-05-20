@@ -152,11 +152,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const last_use_diff = (new Date().getTime() - device.lastTimeUsed.getTime()) / (1000 * 60 * 60);
                         console.log(`time diff: ${last_use_diff}`);
                         if (last_use_diff > min_last_use_hours) {
+                            console.log(`Adding {${borrower.steamid}} to remove list`)
                             removeable.push([borrower.steamid.toString(), borrower.timeCreated.getTime()]);
                         }
-
+                        console.log(`Skipping ${borrower.steamid}`)
                     }
                     removeable.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0);
+                    console.log(`REMOVE_OLD_ENABLED=${process.env.REMOVE_OLD_ENABLED}`)
+                    console.log(`Removable length = ${removeable.length}`)
                     console.log(`Can remove ${removeable}`);
                     if (process.env.REMOVE_OLD_ENABLED == "yes" && removeable.length > 0 && currentBorrowers.borrowers.length < 5) {
                         const removeSteamId = removeable[0][0];
@@ -165,14 +168,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         const devices = await steamUser.getAuthorizedSharingDevices();
                         const filtered = devices.devices.filter(d => d.deviceName == deviceName);
                         if (filtered.length == 0) {
-                            console.log(`Could not find device(${deviceName}) of user ${removeSteamId} while removing`);
+                            console.error(`Could not find device(${deviceName}) of user ${removeSteamId} while removing`);
                         } else if (filtered.length > 1) {
-                            console.log(`Multiple devices(${deviceName}) matched for user ${removeSteamId} while removing`);
+                            console.error(`Multiple devices(${deviceName}) matched for user ${removeSteamId} while removing`);
                         } else {
                             console.log(`Removing ${filtered[0]}`)
                             await steamUser.deauthorizeSharingDevice(filtered[0].deviceToken);
                         }
                     } else {
+                        console.log("Not trying to remove")
                         releaseMutex()
                         return res.status(409).send(`${lender} already has maximum people shared !`);
                     }
